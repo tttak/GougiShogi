@@ -10,13 +10,13 @@ import java.util.Map;
 public class ShogiUtils {
 
 	/**
-	 * 全エンジンのbestmoveコマンドをクリアする
+	 * 全エンジンのbestmove、直近の読み筋をクリアする
 	 * 
 	 * @param usiEngineList
 	 */
-	public static void clearBestmove(List<UsiEngine> usiEngineList) {
+	public static void clearBestmoveLastPv(List<UsiEngine> usiEngineList) {
 		for (UsiEngine engine : usiEngineList) {
-			engine.setBestmoveCommand(null);
+			engine.clearBestmoveLastPv();
 		}
 	}
 
@@ -63,6 +63,29 @@ public class ShogiUtils {
 	public static UsiEngine getEngine(List<UsiEngine> usiEngineList, int engineNumber) {
 		for (UsiEngine engine : usiEngineList) {
 			if (engine.getEngineNumber() == engineNumber) {
+				return engine;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * bestmove（ponder部分を除く）が引数と一致するエンジンのうち、エンジン番号が最小のエンジンを返す
+	 * 
+	 * @param usiEngineList
+	 * @param bestmoveExceptPonder
+	 * @return
+	 */
+	public static UsiEngine getMinEngine(List<UsiEngine> usiEngineList, String bestmoveExceptPonder) {
+		if (Utils.isEmpty(bestmoveExceptPonder)) {
+			return null;
+		}
+
+		// エンジン番号順に並んでいるはずなので、これでよい
+		for (UsiEngine engine : usiEngineList) {
+			// bestmove（ponder部分を除く）で比較
+			if (bestmoveExceptPonder.equals(engine.getBestmoveCommandExceptPonder())) {
 				return engine;
 			}
 		}
@@ -136,6 +159,10 @@ public class ShogiUtils {
 	 */
 	public static String getMoveDispJa(String move) {
 		try {
+			if ("resign".equals(move)) {
+				return "投了";
+			}
+
 			String s1 = move.substring(0, 1);
 			String s2 = move.substring(1, 2);
 			String s3 = move.substring(2, 3);
@@ -206,6 +233,48 @@ public class ShogiUtils {
 		} else if ("P".equals(pieceType)) {
 			return "歩";
 		} else {
+			return "";
+		}
+	}
+
+	/**
+	 * 読み筋から評価値（文字列）を取得
+	 * （例）「info depth 3 seldepth 4 multipv 1 score cp 502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」
+	 * → 「502」
+	 * （例）「info depth 5 seldepth 4 time 2 nodes 1399 nps 699500 hashfull 657 score mate 3 multipv 1 pv 4i2i+ 3h3g G*4g」
+	 * → 「mate 3」
+	 * （例）「info depth 5 seldepth 3 time 1 nodes 14 nps 14000 hashfull 663 score mate -2 multipv 1 pv 5g5f G*4e」
+	 * → 「mate -2」
+	 * 
+	 * @param infoPv
+	 * @return
+	 */
+	public static String getStrScoreFromInfoPv(String infoPv) {
+		try {
+			if (Utils.isEmpty(infoPv)) {
+				return "";
+			}
+
+			if (infoPv.indexOf("score cp ") >= 0) {
+				// （例）「info depth 3 seldepth 4 multipv 1 score cp 502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」
+				// → 「502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」
+				String str = infoPv.substring(infoPv.indexOf("score cp ") + "score cp ".length()).trim();
+				// （例）「502」
+				return Utils.getSplitResult(str, " ", 0);
+			}
+
+			else if (infoPv.indexOf("score mate ") >= 0) {
+				// （例）「info depth 5 seldepth 4 time 2 nodes 1399 nps 699500 hashfull 657 score mate 3 multipv 1 pv 4i2i+ 3h3g G*4g」
+				// → 「3 multipv 1 pv 4i2i+ 3h3g G*4g」
+				String str = infoPv.substring(infoPv.indexOf("score mate ") + "score mate ".length()).trim();
+				// （例）「mate 3」
+				return "mate " + Utils.getSplitResult(str, " ", 0);
+			}
+
+			else {
+				return "";
+			}
+		} catch (Exception e) {
 			return "";
 		}
 	}

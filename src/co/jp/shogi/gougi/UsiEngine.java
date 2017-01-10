@@ -25,8 +25,11 @@ public class UsiEngine {
 
 	/** USIオプションのSet */
 	private Set<String> optionSet = new HashSet<String>();
+
 	/** bestmoveコマンド （例）「bestmove 3i4h ponder 3c8h+」 */
 	private String bestmoveCommand;
+	/** 直近の読み筋 （例）「info depth 3 seldepth 4 multipv 1 score cp 502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」 */
+	private String lastPv;
 
 	/**
 	 * プロセスの終了
@@ -80,6 +83,23 @@ public class UsiEngine {
 		} else {
 			return bestmoveCommand.trim();
 		}
+	}
+
+	/**
+	 * bestmove、直近の読み筋のクリア
+	 */
+	public void clearBestmoveLastPv() {
+		this.bestmoveCommand = null;
+		this.lastPv = null;
+	}
+
+	/**
+	 * 直近の評価値（文字列）を取得
+	 * 
+	 * @return
+	 */
+	public String getLastStrScore() {
+		return ShogiUtils.getStrScoreFromInfoPv(lastPv);
 	}
 
 	// ------------------------------ 単純なGetter&Setter START ------------------------------
@@ -146,6 +166,14 @@ public class UsiEngine {
 
 	public void setOptionSet(Set<String> optionSet) {
 		this.optionSet = optionSet;
+	}
+
+	public String getLastPv() {
+		return lastPv;
+	}
+
+	public void setLastPv(String lastPv) {
+		this.lastPv = lastPv;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

@@ -16,9 +16,6 @@ public class GougiConfig {
 	/** Logger */
 	protected static Logger logger = Logger.getLogger(GougiConfig.class.getName());
 
-	/** 設定ファイルのファイル名 */
-	public final String FILENAME = "SimpleGougiShogi.config";
-
 	/** USIエンジンリスト */
 	private List<UsiEngine> usiEngineList = new ArrayList<UsiEngine>();
 
@@ -69,9 +66,9 @@ public class GougiConfig {
 	public String getConfigFilePath() {
 		String classPath = System.getProperty("java.class.path");
 		if (classPath.endsWith(".jar")) {
-			return Utils.getMyDir().getAbsolutePath() + File.separator + FILENAME;
+			return Utils.getMyDir().getAbsolutePath() + File.separator + Constants.CONFIG_FILENAME;
 		} else {
-			return FILENAME;
+			return Constants.CONFIG_FILENAME;
 		}
 	}
 

@@ -13,11 +13,6 @@ public class SimpleGougiShogiMain {
 	/** Logger */
 	protected static Logger logger = Logger.getLogger(SimpleGougiShogiMain.class.getName());
 
-	/** usiコマンドに返す「id name」 */
-	private static final String USI_ID_NAME = "SimpleGougiShogi_20170109";
-	/** usiコマンドに返す「id author」 */
-	private static final String USI_ID_AUTHOR = "t";
-
 	/**
 	 * mainメソッド
 	 * 
@@ -103,8 +98,8 @@ public class SimpleGougiShogiMain {
 					// 標準入力（GUI側）からのコマンドに「go」で始まるコマンドが含まれる場合
 					if (Utils.containsStartsWith(systemInputCommandList, "go")) {
 						goFlg = true;
-						// 全エンジンのbestmoveをクリア
-						ShogiUtils.clearBestmove(usiEngineList);
+						// 全エンジンのbestmove、直近の読み筋をクリア
+						ShogiUtils.clearBestmoveLastPv(usiEngineList);
 					}
 				}
 
@@ -313,8 +308,8 @@ public class SimpleGougiShogiMain {
 		// 「id name～」と「id author～」は各エンジンからではなく、このプログラム独自で返す
 		// ・スレッドの排他制御
 		synchronized (systemOutputThread) {
-			systemOutputThread.getCommandList().add("id name " + USI_ID_NAME);
-			systemOutputThread.getCommandList().add("id author " + USI_ID_AUTHOR);
+			systemOutputThread.getCommandList().add("id name " + Constants.USI_ID_NAME);
+			systemOutputThread.getCommandList().add("id author " + Constants.USI_ID_AUTHOR);
 		}
 
 		// GUIに返し終わるまで待つ
@@ -450,6 +445,11 @@ public class SimpleGougiShogiMain {
 						// その他の場合、標準出力（GUI側）へのコマンドリストに追加
 						else {
 							systemOutputThread.getCommandList().add(command);
+
+							// 「info～score～」の場合、直近の読み筋をエンジンに保存
+							if (command.startsWith("info ") && command.indexOf("score ") >= 0) {
+								engine.setLastPv(command);
+							}
 						}
 					}
 				}
@@ -471,12 +471,22 @@ public class SimpleGougiShogiMain {
 		}
 
 		// 合議を実行し、合議結果のbestmoveコマンドを取得（ponder部分を除く）
+		// ・合議自体はこれで終了
 		String bestmoveCommand = ShogiUtils.getGougiBestmoveCommandExceptPonder(usiEngineList);
 
 		if (!Utils.isEmpty(bestmoveCommand)) {
 			// 合議結果を標準出力（GUI側）へのコマンドリストに追加
 			// ・スレッドの排他制御
 			synchronized (systemOutputThread) {
+				// 合議で指し手が採用されたエンジンのうち、エンジン番号が最小のエンジンの読み筋（評価値を含む）を再度出力しておく
+				// ・将棋所等では、bestmove直前の読み筋（「info～score～pv～」）が評価値・読み筋として表示されるため、指し手が採用されなかったエンジンが直近だと指し手と読み筋が矛盾するので。
+				UsiEngine minEngine = ShogiUtils.getMinEngine(usiEngineList, bestmoveCommand);
+				if (minEngine != null) {
+					if (!Utils.isEmpty(minEngine.getLastPv())) {
+						systemOutputThread.getCommandList().add(minEngine.getLastPv());
+					}
+				}
+
 				// 各エンジンのbestmoveを参考情報としてGUIへ出力する
 				// ・GUIで見やすいようにエンジンは逆順にしておく（エンジン1が上に表示されるように）
 				for (int i = usiEngineList.size() - 1; i >= 0; i--) {
@@ -489,9 +499,10 @@ public class SimpleGougiShogiMain {
 					// （例）「7g7f」
 					String move = Utils.getSplitResult(engineBest, " ", 1);
 					// （例）「7g7f」→「７六(77)」
+					// ・本来は「info string」で全角文字はNGかもしれないが．．．
 					String moveDispJa = ShogiUtils.getMoveDispJa(move);
-					// （例）「info string [O] bestmove 7g7f [７六(77)] [Gikou 20160606]」
-					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engineBest + " [" + moveDispJa + "] [" + engine.getUsiName() + "]");
+					// （例）「info string [O] bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
+					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engineBest + " [" + moveDispJa + "] [評価値 " + engine.getLastStrScore() + "] [" + engine.getUsiName() + "]");
 				}
 
 				// bestmoveをGUIへ返す
