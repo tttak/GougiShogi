@@ -439,9 +439,14 @@ public class SimpleGougiShogiMain {
 				synchronized (systemOutputThread) {
 					for (String command : processInputCommandList) {
 						// 「bestmove」の場合、この段階ではGUIへ返さず、エンジンに保存しておく。（3つ揃ってから合議結果をGUIへ返すので）
+						// ・ただし、思考が終わったことがGUIから見えた方がよさそうなので、「info string」で返しておく。
 						if (goFlg && command.startsWith("bestmove")) {
+							// bestmoveをエンジンに保存
 							engine.setBestmoveCommand(command);
+							// （例）「info string bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
+							systemOutputThread.getCommandList().add("info string " + engine.getBestmoveScoreDisp());
 						}
+
 						// その他の場合、標準出力（GUI側）へのコマンドリストに追加
 						else {
 							systemOutputThread.getCommandList().add(command);
@@ -496,13 +501,8 @@ public class SimpleGougiShogiMain {
 					String engineBest = engine.getBestmoveCommandExceptPonder();
 					// このエンジンの指し手が採用されたか否か。丸とバツだが、「O」と「X」で代替する。
 					String hantei = engineBest.equals(bestmoveCommand) ? "O" : "X";
-					// （例）「7g7f」
-					String move = Utils.getSplitResult(engineBest, " ", 1);
-					// （例）「7g7f」→「７六(77)」
-					// ・本来は「info string」で全角文字はNGかもしれないが．．．
-					String moveDispJa = ShogiUtils.getMoveDispJa(move);
 					// （例）「info string [O] bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
-					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engineBest + " [" + moveDispJa + "] [評価値 " + engine.getLastStrScore() + "] [" + engine.getUsiName() + "]");
+					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp());
 				}
 
 				// bestmoveをGUIへ返す

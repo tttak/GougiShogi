@@ -102,6 +102,28 @@ public class UsiEngine {
 		return ShogiUtils.getStrScoreFromInfoPv(lastPv);
 	}
 
+	/**
+	 * bestmove、評価値の表示用文字列を取得
+	 * （例）「bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
+	 * 
+	 * @return
+	 */
+	public String getBestmoveScoreDisp() {
+		// （例）「bestmove 7g7f」
+		String bestmoveExceptPonder = getBestmoveCommandExceptPonder();
+		if (bestmoveExceptPonder == null) {
+			bestmoveExceptPonder = "";
+		}
+
+		// （例）「7g7f」
+		String move = Utils.getSplitResult(bestmoveExceptPonder, " ", 1);
+		// （例）「7g7f」→「７六(77)」
+		// ・本来は「info string」で全角文字はNGかもしれないが．．．
+		String moveDispJa = ShogiUtils.getMoveDispJa(move);
+		// （例）「bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
+		return bestmoveExceptPonder + " [" + moveDispJa + "] [評価値 " + getLastStrScore() + "] [" + usiName + "]";
+	}
+
 	// ------------------------------ 単純なGetter&Setter START ------------------------------
 
 	public File getExeFile() {
