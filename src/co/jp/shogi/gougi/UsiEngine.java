@@ -13,7 +13,7 @@ public class UsiEngine {
 	private File exeFile;
 	/** USI名 （例）「Gikou 20160606」　 */
 	private String usiName;
-	/** エンジン番号（1～3のいずれか） */
+	/** エンジン番号（1,2,3,...,エンジン件数） */
 	private int engineNumber;
 
 	/** プロセス */
@@ -100,6 +100,46 @@ public class UsiEngine {
 	 */
 	public String getLastStrScore() {
 		return ShogiUtils.getStrScoreFromInfoPv(lastPv);
+	}
+
+	/**
+	 * 直近の評価値（数値）を取得
+	 * 
+	 * @return
+	 */
+	public int getLastScore() {
+		try {
+			// 直近の評価値（文字列）を取得
+			// （例）「502」「-1234」「mate 3」「mate -2」「""」
+			String strScore = getLastStrScore();
+
+			if (Utils.isEmpty(strScore)) {
+				return Constants.SCORE_NONE;
+			}
+
+			if (strScore.startsWith("mate ")) {
+				// （例）「3」「-2」
+				int mate = Integer.parseInt(Utils.getSplitResult(strScore, " ", 1));
+
+				if (mate > 0) {
+					// （例）99997
+					return Constants.SCORE_MATE - mate;
+				} else if (mate < 0) {
+					// （例）-99998
+					return -(Constants.SCORE_MATE + mate);
+				} else {
+					return Constants.SCORE_NONE;
+				}
+			}
+
+			else {
+				// （例）「502」「-1234」
+				return Integer.parseInt(strScore);
+			}
+
+		} catch (Exception e) {
+			return Constants.SCORE_NONE;
+		}
 	}
 
 	/**

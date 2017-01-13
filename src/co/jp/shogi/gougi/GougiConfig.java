@@ -16,8 +16,25 @@ public class GougiConfig {
 	/** Logger */
 	protected static Logger logger = Logger.getLogger(GougiConfig.class.getName());
 
+	/** 合議タイプ */
+	private String gougiType;
 	/** USIエンジンリスト */
-	private List<UsiEngine> usiEngineList = new ArrayList<UsiEngine>();
+	private List<UsiEngine> usiEngineList;
+
+	// ---------- Singleton化 START ----------
+
+	private GougiConfig() {
+	}
+
+	private static class SingletonHolder {
+		private static final GougiConfig instance = new GougiConfig();
+	}
+
+	public static GougiConfig getInstance() {
+		return SingletonHolder.instance;
+	}
+
+	// ---------- Singleton化 END ----------
 
 	/**
 	 * 設定ファイル読込み
@@ -28,6 +45,10 @@ public class GougiConfig {
 		List<UsiEngine> list = new ArrayList<UsiEngine>();
 		BufferedReader br = null;
 
+		// 初期化
+		gougiType = null;
+		usiEngineList = null;
+
 		try {
 			br = new BufferedReader(new FileReader(new File(getConfigFilePath())));
 
@@ -37,15 +58,27 @@ public class GougiConfig {
 			while ((line = br.readLine()) != null) {
 				logger.info(line);
 
-				for (int i = 1; i <= 3; i++) {
+				// 合議タイプの設定
+				if (line.startsWith("Gougi.Type=")) {
+					// 複数行で設定されていた場合、先勝ちとする
+					if (gougiType == null) {
+						gougiType = line.substring("Gougi.Type=".length()).trim();
+					}
+				}
+
+				// エンジンの設定
+				for (int i = 1; i <= Constants.MAX_ENGINE_COUNT; i++) {
 					String str = "Engine" + i + ".Path=";
 
 					// （例）「Engine1.Path=」で始まる行の場合
 					if (line.startsWith(str)) {
-						UsiEngine engine = new UsiEngine();
-						engine.setEngineNumber(i);
-						engine.setExeFile(new File(line.substring(str.length()).trim()));
-						list.add(engine);
+						// 同じエンジン番号が複数行にあった場合、先勝ちとする
+						if (ShogiUtils.getEngine(list, i) == null) {
+							UsiEngine engine = new UsiEngine();
+							engine.setEngineNumber(i);
+							engine.setExeFile(new File(line.substring(str.length()).trim()));
+							list.add(engine);
+						}
 					}
 				}
 			}
@@ -55,6 +88,46 @@ public class GougiConfig {
 		} finally {
 			Utils.close(br);
 		}
+	}
+
+	/**
+	 * エラーメッセージ取得（設定ファイルの内容のチェック）
+	 * 
+	 * @return
+	 */
+	public String getErrorMessage() {
+		// デバッグログ
+		logger.info("gougiType=" + gougiType);
+
+		if (usiEngineList == null) {
+			logger.info("usiEngineList == null");
+		} else {
+			logger.info("usiEngineList.size()=" + usiEngineList.size());
+		}
+
+		// エンジンが存在しない場合
+		if (usiEngineList == null || usiEngineList.isEmpty()) {
+			// チェックNG
+			return "エンジンの設定が見つかりません。";
+		}
+
+		// 合議タイプが正しくない場合
+		if (!Constants.GOUGI_TYPE_LIST.contains(gougiType)) {
+			// チェックNG
+			return "合議タイプが正しくありません。";
+		}
+
+		// 合議タイプが「多数決合議（3者）」の場合
+		if (Constants.GOUGI_TYPE_TASUUKETSU_3.equals(gougiType)) {
+			// エンジンが3個ではない場合
+			if (usiEngineList.size() != Constants.TASUUKETSU_3_ENGINE_COUNT) {
+				// チェックNG
+				return "合議タイプが「多数決合議（3者）」の場合、エンジンは3種類設定してください。";
+			}
+		}
+
+		// チェックOK
+		return null;
 	}
 
 	/**
@@ -81,7 +154,7 @@ public class GougiConfig {
 	private List<UsiEngine> sort(List<UsiEngine> usiEngineList) {
 		List<UsiEngine> list = new ArrayList<UsiEngine>();
 
-		for (int i = 1; i <= 3; i++) {
+		for (int i = 1; i <= Constants.MAX_ENGINE_COUNT; i++) {
 			UsiEngine engine = ShogiUtils.getEngine(usiEngineList, i);
 			if (engine != null) {
 				list.add(engine);
@@ -95,6 +168,14 @@ public class GougiConfig {
 
 	public List<UsiEngine> getUsiEngineList() {
 		return usiEngineList;
+	}
+
+	public String getGougiType() {
+		return gougiType;
+	}
+
+	public void setGougiType(String gougiType) {
+		this.gougiType = gougiType;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

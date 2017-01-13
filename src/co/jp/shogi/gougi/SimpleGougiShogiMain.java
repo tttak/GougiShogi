@@ -55,14 +55,22 @@ public class SimpleGougiShogiMain {
 			systemOutputThread.setDaemon(true);
 			systemOutputThread.start();
 
-			// エンジンリスト作成
-			usiEngineList = createEngineList();
+			// 設定ファイル読込み
+			GougiConfig gougiConfig = GougiConfig.getInstance();
+			gougiConfig.readConfigFile();
 
-			// エンジンが3個ではない場合、異常終了
-			if (usiEngineList.size() != 3) {
-				systemOutputThread.getCommandList().add("info string [Error] " + new GougiConfig().getConfigFilePath());
+			// エラーメッセージ取得（設定ファイルの内容のチェック）
+			// ・ 合議タイプとエンジン件数が不整合の場合、異常終了させる。
+			String errorMessage = gougiConfig.getErrorMessage();
+			if (errorMessage != null) {
+				systemOutputThread.getCommandList().add("info string [Error] " + errorMessage + " [" + GougiConfig.getInstance().getConfigFilePath() + "]");
+				logger.severe(errorMessage);
+				Thread.sleep(500);
 				return;
 			}
+
+			// エンジンリスト取得
+			usiEngineList = gougiConfig.getUsiEngineList();
 
 			// 各USIエンジンのプロセスを起動する
 			startEngineProcess(usiEngineList);
@@ -122,7 +130,7 @@ public class SimpleGougiShogiMain {
 				// 「go」の場合
 				if (goFlg) {
 					// 合議を実行
-					if (executeGougi(systemOutputThread, usiEngineList)) {
+					if (executeGougi(systemOutputThread, usiEngineList, GougiConfig.getInstance().getGougiType())) {
 						// 合議完了の場合、「go」フラグを落とす
 						goFlg = false;
 					}
@@ -143,19 +151,6 @@ public class SimpleGougiShogiMain {
 				}
 			}
 		}
-	}
-
-	/**
-	 * エンジンリスト作成
-	 * 
-	 * @return
-	 * @throws IOException
-	 */
-	private List<UsiEngine> createEngineList() throws IOException {
-		GougiConfig gougiConfig = new GougiConfig();
-		// 設定ファイル読込み
-		gougiConfig.readConfigFile();
-		return gougiConfig.getUsiEngineList();
 	}
 
 	/**
@@ -467,17 +462,23 @@ public class SimpleGougiShogiMain {
 	 * 
 	 * @param systemOutputThread
 	 * @param usiEngineList
+	 * @param gougiType
 	 * @return
 	 */
-	private boolean executeGougi(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
-		// bestmoveが返ってきていないエンジンが存在する場合
-		if (ShogiUtils.containsEmptyBestmove(usiEngineList)) {
+	private boolean executeGougi(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList, String gougiType) {
+		// 合議実行
+		GougiLogic gougiLogic = new GougiLogic(gougiType, usiEngineList);
+		UsiEngine resultEngine = gougiLogic.execute();
+
+		// 合議が不成立の場合
+		// ・bestmoveが返ってきていないエンジンが存在する場合など
+		if (resultEngine == null) {
 			return false;
 		}
 
-		// 合議を実行し、合議結果のbestmoveコマンドを取得（ponder部分を除く）
+		// 合議結果のbestmoveコマンドを取得（ponder部分を除く）
 		// ・合議自体はこれで終了
-		String bestmoveCommand = ShogiUtils.getGougiBestmoveCommandExceptPonder(usiEngineList);
+		String bestmoveCommand = resultEngine.getBestmoveCommandExceptPonder();
 
 		if (!Utils.isEmpty(bestmoveCommand)) {
 			// 合議結果を標準出力（GUI側）へのコマンドリストに追加
@@ -485,11 +486,8 @@ public class SimpleGougiShogiMain {
 			synchronized (systemOutputThread) {
 				// 合議で指し手が採用されたエンジンのうち、エンジン番号が最小のエンジンの読み筋（評価値を含む）を再度出力しておく
 				// ・将棋所等では、bestmove直前の読み筋（「info～score～pv～」）が評価値・読み筋として表示されるため、指し手が採用されなかったエンジンが直近だと指し手と読み筋が矛盾するので。
-				UsiEngine minEngine = ShogiUtils.getMinEngine(usiEngineList, bestmoveCommand);
-				if (minEngine != null) {
-					if (!Utils.isEmpty(minEngine.getLastPv())) {
-						systemOutputThread.getCommandList().add(minEngine.getLastPv());
-					}
+				if (!Utils.isEmpty(resultEngine.getLastPv())) {
+					systemOutputThread.getCommandList().add(resultEngine.getLastPv());
 				}
 
 				// 各エンジンのbestmoveを参考情報としてGUIへ出力する

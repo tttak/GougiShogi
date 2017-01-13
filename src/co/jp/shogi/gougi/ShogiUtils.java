@@ -94,37 +94,6 @@ public class ShogiUtils {
 	}
 
 	/**
-	 * 合議を実行し、合議結果のbestmoveコマンド（ponder部分を除く）を返す
-	 * ・多数決合議
-	 * ・三者三様の場合はエンジン1の指し手を採用する
-	 * 
-	 * @param usiEngineList
-	 * @return
-	 */
-	public static String getGougiBestmoveCommandExceptPonder(List<UsiEngine> usiEngineList) {
-		// bestmoveごとの件数Map（ponder部分を除く）を作成
-		Map<String, Integer> bestmoveCountMap = createBestmoveCountMap(usiEngineList);
-
-		// 三者三様の場合
-		if (bestmoveCountMap.size() >= 3) {
-			// エンジン1の指し手を採用する
-			return getEngine(usiEngineList, 1).getBestmoveCommandExceptPonder();
-		}
-
-		// その他の場合（「3対0」または「2対1」の場合）
-		else {
-			for (String bestmoveCommand : bestmoveCountMap.keySet()) {
-				// 「3対0」または「2対1」しかありえないので、2票以上で確定
-				if (bestmoveCountMap.get(bestmoveCommand) >= 2) {
-					return bestmoveCommand;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	/**
 	 * コマンドからオプション名を取得
 	 * （例）「option name Threads type spin default 4 min 1 max 256」
 	 * → 「Threads」
