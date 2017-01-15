@@ -75,17 +75,40 @@ public class SimpleGougiShogiMain {
 			// 各USIエンジンのプロセスを起動する
 			startEngineProcess(usiEngineList);
 
-			// quitフラグ、goフラグ
+			// quitフラグ、goフラグ、ponderフラグ
 			boolean quitFlg = false;
 			boolean goFlg = false;
+			boolean ponderFlg = false;
+
+			// 前回の合議タイプ
+			String prevGougiType = null;
 
 			while (!quitFlg) {
 				// usiフラグ、isreadyフラグ
 				boolean usiFlg = false;
 				boolean isreadyFlg = false;
 
+				// 保留中の標準入力（GUI側）からのコマンドリスト
+				// ・ponder時のstopやponderhitは一旦このリストにためる
+				List<String> pendingSysinCommandList = new ArrayList<String>();
+
 				// 標準入力（GUI側）からのコマンドを各エンジンへのコマンドリストに追加する
-				List<String> systemInputCommandList = sysinToEngines(systemInputThread, usiEngineList);
+				List<String> systemInputCommandList = sysinToEngines(systemInputThread, usiEngineList, ponderFlg, pendingSysinCommandList);
+
+				// 保留中の標準入力（GUI側）からのコマンドが存在する場合
+				if (!pendingSysinCommandList.isEmpty()) {
+					for (String command : pendingSysinCommandList) {
+						// ponder時のstopまたはponderhitの場合
+						if (ponderFlg && ("stop".equals(command) || "ponderhit".equals(command))) {
+							ponderFlg = false;
+
+							logger.info("ponder時のstopまたはponderhitの場合 START");
+							// ponder終了時の処理
+							endPonder(command, systemInputThread, systemOutputThread, usiEngineList);
+							logger.info("ponder時のstopまたはponderhitの場合 END");
+						}
+					}
+				}
 
 				if (systemInputCommandList != null) {
 					// 標準入力（GUI側）からのコマンドに「quit」が含まれる場合
@@ -109,6 +132,11 @@ public class SimpleGougiShogiMain {
 						// 全エンジンのbestmove、直近の読み筋をクリア
 						ShogiUtils.clearBestmoveLastPv(usiEngineList);
 					}
+
+					// 標準入力（GUI側）からのコマンドに「go ponder」が含まれる場合
+					if (systemInputCommandList.contains("go ponder")) {
+						ponderFlg = true;
+					}
 				}
 
 				// 「usi」の場合
@@ -129,10 +157,15 @@ public class SimpleGougiShogiMain {
 
 				// 「go」の場合
 				if (goFlg) {
+					// 今回の合議タイプを取得
+					String currentGougiType = calcCurrentGougiType(prevGougiType);
+
 					// 合議を実行
-					if (executeGougi(systemOutputThread, usiEngineList, GougiConfig.getInstance().getGougiType())) {
+					if (executeGougi(systemOutputThread, usiEngineList, currentGougiType)) {
 						// 合議完了の場合、「go」フラグを落とす
 						goFlg = false;
+						// 前回の合議タイプを更新
+						prevGougiType = currentGougiType;
 					}
 				}
 
@@ -199,9 +232,11 @@ public class SimpleGougiShogiMain {
 	 * 
 	 * @param systemInputThread
 	 * @param usiEngineList
+	 * @param ponderFlg
+	 * @param pendingCommandList
 	 * @return
 	 */
-	private List<String> sysinToEngines(InputStreamThread systemInputThread, List<UsiEngine> usiEngineList) {
+	private List<String> sysinToEngines(InputStreamThread systemInputThread, List<UsiEngine> usiEngineList, boolean ponderFlg, List<String> pendingCommandList) {
 		List<String> systemInputCommandList = null;
 
 		// 標準入力（GUI側）からの入力用スレッドのコマンドリストが空ではない場合、ローカル変数にコピーしてからクリア
@@ -220,8 +255,8 @@ public class SimpleGougiShogiMain {
 				// ・スレッドの排他制御
 				synchronized (engine.getOutputThread()) {
 					for (String command : systemInputCommandList) {
-						// コマンドを編集（「setoption」対応）
-						String cmd = editSysinCommand(command, engine);
+						// 標準入力（GUI側）からのコマンドを編集（setoption対応、ponder対応）
+						String cmd = editSysinCommand(command, engine, ponderFlg, pendingCommandList);
 						if (!Utils.isEmpty(cmd)) {
 							engine.getOutputThread().getCommandList().add(cmd);
 						}
@@ -234,24 +269,44 @@ public class SimpleGougiShogiMain {
 	}
 
 	/**
-	 * コマンドを編集
-	 * ・通常はcommandをそのまま返す
-	 * ・「setoption」の場合、例えば「E2_OwnBook」を「OwnBook」へ戻す（「option name」のときに「OwnBook」を「E2_OwnBook」に変換したので）
-	 * （例）「option name E2_OwnBook type check default true」
-	 * →「option name OwnBook type check default true」（エンジン2の場合のみ）
+	 * 標準入力（GUI側）からのコマンドを編集（setoption対応、ponder対応）
+	 * ・通常はcommandをそのまま返す。
+	 * ・setoptionの場合とponderの場合、編集後のコマンドを返す。（nullを返すこともある）
+	 * 
+	 * @param command
+	 * @param engine
+	 * @param ponderFlg
+	 * @param pendingCommandList
+	 * @return
+	 */
+	private String editSysinCommand(String command, UsiEngine engine, boolean ponderFlg, List<String> pendingCommandList) {
+		// 「setoption」の場合
+		if (command.startsWith("setoption ")) {
+			return editSysinCommandAtSetOption(command, engine);
+		}
+
+		// ponder時のstopまたはponderhitの場合、pendingCommandListに追加し、nullを返す
+		if (ponderFlg && ("stop".equals(command) || "ponderhit".equals(command))) {
+			pendingCommandList.add(command);
+			return null;
+		}
+
+		// その他の場合、commandをそのまま返す
+		return command;
+	}
+
+	/**
+	 * 標準入力（GUI側）からのコマンドを編集（setoption対応）
+	 * ・前提：引数commandがsetoptionコマンドであること。
+	 * ・setoptionコマンドで、例えば「E2_OwnBook」を「OwnBook」へ戻す（「option name」のときに「OwnBook」を「E2_OwnBook」に変換したので）
+	 * （例）「setoption name E2_OwnBook value true」
+	 * →「setoption name OwnBook value true」（エンジン2の場合のみ）
 	 * 
 	 * @param command
 	 * @param engine
 	 * @return
 	 */
-	private String editSysinCommand(String command, UsiEngine engine) {
-		// 「setoption」以外の場合
-		if (!command.startsWith("setoption ")) {
-			// commandをそのまま返す
-			return command;
-		}
-
-		// ----- 以下、「setoption」の場合
+	private String editSysinCommandAtSetOption(String command, UsiEngine engine) {
 		// （例）「setoption name E2_OwnBook value true」の場合
 		// ・エンジン1の場合、nullを返す
 		// ・エンジン2の場合、「setoption name OwnBook value true」を返す
@@ -267,11 +322,17 @@ public class SimpleGougiShogiMain {
 		String option = ShogiUtils.getOptionName(command);
 
 		if (Utils.isEmpty(option)) {
-			return null;
+			// 通常はありえないケースだが、commandをそのまま返しておく
+			return command;
 		}
 
-		// （例）「USI_Hash」
+		// （例）「USI_Hash」「USI_Ponder」
 		if (option.startsWith("USI")) {
+			// 「USI_Ponder」の場合、エンジンに値をセット
+			if ("USI_Ponder".equals(option)) {
+				setEnginePonderFlg(engine, command);
+			}
+
 			// commandをそのまま返す
 			return command;
 		}
@@ -283,6 +344,11 @@ public class SimpleGougiShogiMain {
 
 			// 当該エンジンのUSIオプションに含まれる場合（念のためチェック）
 			if (engine.getOptionSet().contains(str)) {
+				// 「USI_Ponder」の場合、エンジンに値をセット
+				if ("USI_Ponder".equals(str)) {
+					setEnginePonderFlg(engine, command);
+				}
+
 				String prefix = "setoption name " + engine.getOptionNamePrefix();
 				// （例）「setoption name OwnBook value true」
 				return "setoption name " + command.substring(prefix.length()).trim();
@@ -291,6 +357,27 @@ public class SimpleGougiShogiMain {
 
 		// （例）「E2_」で始まるオプションは、エンジン1とエンジン3の場合はnullを返す（エンジン2用のオプションのはずなので）
 		return null;
+	}
+
+	/**
+	 * エンジンのponderフラグをセット
+	 * ・前提：当該エンジンのUSI_Ponderのsetoptionコマンドであること
+	 * 
+	 * @param engine
+	 * @param command
+	 */
+	private void setEnginePonderFlg(UsiEngine engine, String command) {
+		try {
+			// （例）「setoption name USI_Ponder value true」→「true」
+			// （例）「setoption name E2_USI_Ponder value true」→「true」
+			String val = Utils.getSplitResult(command, " ", 4);
+			engine.setPonderFlg("true".equals(val));
+
+			logger.info("[" + engine.getEngineDisp() + "]command=" + command);
+			logger.info("[" + engine.getEngineDisp() + "]engine.isPonderFlg()=" + engine.isPonderFlg());
+		} catch (Exception e) {
+			// 何もしない
+		}
 	}
 
 	/**
@@ -439,7 +526,10 @@ public class SimpleGougiShogiMain {
 							// bestmoveをエンジンに保存
 							engine.setBestmoveCommand(command);
 							// （例）「info string bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
-							systemOutputThread.getCommandList().add("info string " + engine.getBestmoveScoreDisp());
+							// [ponder対応]
+							// （例）「info string bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123] [Gikou 20160606]」
+							// systemOutputThread.getCommandList().add("info string " + engine.getBestmoveScoreDisp());
+							systemOutputThread.getCommandList().add("info string " + engine.getBestmovePonderScoreDisp());
 						}
 
 						// その他の場合、標準出力（GUI側）へのコマンドリストに追加
@@ -499,12 +589,18 @@ public class SimpleGougiShogiMain {
 					String engineBest = engine.getBestmoveCommandExceptPonder();
 					// このエンジンの指し手が採用されたか否か。丸とバツだが、「O」と「X」で代替する。
 					String hantei = engineBest.equals(bestmoveCommand) ? "O" : "X";
+
 					// （例）「info string [O] bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
-					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp());
+					// [ponder対応]
+					// （例）「info string [O] bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123] [Gikou 20160606]」
+					// systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp());
+					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmovePonderScoreDisp());
 				}
 
 				// bestmoveをGUIへ返す
+				// TODO [ponder対応]
 				systemOutputThread.getCommandList().add(bestmoveCommand);
+				// systemOutputThread.getCommandList().add(resultEngine.getBestmoveCommand());
 			}
 
 			// 合議完了
@@ -512,6 +608,44 @@ public class SimpleGougiShogiMain {
 		}
 
 		return false;
+	}
+
+	/**
+	 * 今回の合議タイプを算出
+	 * 
+	 * @param prevGougiType
+	 * @return
+	 */
+	private String calcCurrentGougiType(String prevGougiType) {
+		// 設定値が「楽観合議と悲観合議を交互」の場合
+		if (Constants.GOUGI_TYPE_RAKKAN_HIKAN_BYTURNS.equals(GougiConfig.getInstance().getGougiType())) {
+			if (Utils.isEmpty(prevGougiType)) {
+				return Constants.GOUGI_TYPE_RAKKAN;
+			} else if (Constants.GOUGI_TYPE_RAKKAN.equals(prevGougiType)) {
+				return Constants.GOUGI_TYPE_HIKAN;
+			} else {
+				return Constants.GOUGI_TYPE_RAKKAN;
+			}
+		}
+		// その他の場合
+		else {
+			// 設定値をそのまま返す
+			return GougiConfig.getInstance().getGougiType();
+		}
+	}
+
+	/**
+	 * ponder終了時の処理
+	 * ・前提：コマンドはstop、ponderhitのいずれかであること
+	 * 
+	 * @param command
+	 * @param systemInputThread
+	 * @param systemOutputThread
+	 * @param usiEngineList
+	 */
+	private void endPonder(String command, InputStreamThread systemInputThread, OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
+		// TODO
+
 	}
 
 }

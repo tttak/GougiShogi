@@ -26,6 +26,9 @@ public class UsiEngine {
 	/** USIオプションのSet */
 	private Set<String> optionSet = new HashSet<String>();
 
+	/** ponderの有無 */
+	private boolean ponderFlg = false;
+
 	/** bestmoveコマンド （例）「bestmove 3i4h ponder 3c8h+」 */
 	private String bestmoveCommand;
 	/** 直近の読み筋 （例）「info depth 3 seldepth 4 multipv 1 score cp 502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」 */
@@ -143,6 +146,53 @@ public class UsiEngine {
 	}
 
 	/**
+	 * bestmoveの指し手を取得
+	 * （例）「bestmove 3i4h ponder 3c8h+」→「3i4h」
+	 * 
+	 * @return
+	 */
+	public String getBestmove() {
+		try {
+			if (bestmoveCommand == null) {
+				return null;
+			}
+
+			if (!bestmoveCommand.startsWith("bestmove ")) {
+				return null;
+			}
+
+			// （例）「bestmove 3i4h ponder 3c8h+」→「3i4h」
+			return Utils.getSplitResult(bestmoveCommand, " ", 1).trim();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * ponderの指し手を取得
+	 * （例）「bestmove 3i4h ponder 3c8h+」→「3c8h+」
+	 * 
+	 * @return
+	 */
+	public String getPonderMove() {
+		try {
+			if (bestmoveCommand == null) {
+				return null;
+			}
+
+			int index = bestmoveCommand.indexOf("ponder ");
+			if (index < 0) {
+				return null;
+			}
+
+			// （例）「bestmove 3i4h ponder 3c8h+」→「3c8h+」
+			return bestmoveCommand.substring(index + "ponder ".length()).trim();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	/**
 	 * bestmove、評価値の表示用文字列を取得
 	 * （例）「bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
 	 * 
@@ -162,6 +212,32 @@ public class UsiEngine {
 		String moveDispJa = ShogiUtils.getMoveDispJa(move);
 		// （例）「bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
 		return bestmoveExceptPonder + " [" + moveDispJa + "] [評価値 " + getLastStrScore() + "] [" + usiName + "]";
+	}
+
+	/**
+	 * bestmove、ponder、評価値の表示用文字列を取得
+	 * （例）「bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123] [Gikou 20160606]」
+	 * 
+	 * @return
+	 */
+	public String getBestmovePonderScoreDisp() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(bestmoveCommand);
+		sb.append(" [");
+		sb.append(ShogiUtils.getMoveDispJa(getBestmove()));
+
+		String ponderMove = getPonderMove();
+		if (getPonderMove() != null) {
+			sb.append(" ");
+			sb.append(ShogiUtils.getMoveDispJa(ponderMove));
+		}
+
+		sb.append("] [評価値 ");
+		sb.append(getLastStrScore());
+		sb.append("] [");
+		sb.append(usiName);
+		sb.append("]");
+		return sb.toString();
 	}
 
 	// ------------------------------ 単純なGetter&Setter START ------------------------------
@@ -236,6 +312,14 @@ public class UsiEngine {
 
 	public void setLastPv(String lastPv) {
 		this.lastPv = lastPv;
+	}
+
+	public boolean isPonderFlg() {
+		return ponderFlg;
+	}
+
+	public void setPonderFlg(boolean ponderFlg) {
+		this.ponderFlg = ponderFlg;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------
