@@ -51,6 +51,16 @@ public class GougiLogic {
 			return gougi_hikan();
 		}
 
+		// 2手前の評価値からの上昇分の楽観合議の場合
+		else if (Constants.GOUGI_TYPE_2TEMAE_JOUSHOU_RAKKAN.equals(gougiType)) {
+			return gougi_2temae_joushou_rakkan();
+		}
+
+		// 2手前の評価値からの上昇分の悲観合議の場合
+		else if (Constants.GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN.equals(gougiType)) {
+			return gougi_2temae_joushou_hikan();
+		}
+
 		// その他の場合
 		else {
 			return null;
@@ -147,6 +157,74 @@ public class GougiLogic {
 		// 評価値が最大のエンジンを求める
 		for (UsiEngine engine : usiEngineList) {
 			int score = engine.getLastScore();
+			if (score != Constants.SCORE_NONE && score < min_score) {
+				result = engine;
+				min_score = score;
+			}
+		}
+
+		// この段階で合議結果が決まらない場合、エンジン1をセット
+		// ・すべてのエンジンが「SCORE_NONE」の場合など
+		if (result == null) {
+			result = usiEngineList.get(0);
+		}
+
+		return result;
+	}
+
+	/**
+	 * 2手前の評価値からの上昇分の楽観合議を実行
+	 * 
+	 * @return
+	 */
+	private UsiEngine gougi_2temae_joushou_rakkan() {
+		// bestmoveが返ってきていないエンジンが存在する場合
+		if (ShogiUtils.containsEmptyBestmove(usiEngineList)) {
+			return null;
+		}
+
+		// 戻り値用
+		UsiEngine result = null;
+		// 「2手前の評価値からの上昇分」の最大値
+		int max_score = Integer.MIN_VALUE;
+
+		// 「2手前の評価値からの上昇分」が最大のエンジンを求める
+		for (UsiEngine engine : usiEngineList) {
+			int score = engine.getScore2TemaeJoushou();
+			if (score != Constants.SCORE_NONE && score > max_score) {
+				result = engine;
+				max_score = score;
+			}
+		}
+
+		// この段階で合議結果が決まらない場合、エンジン1をセット
+		// ・すべてのエンジンが「SCORE_NONE」の場合など
+		if (result == null) {
+			result = usiEngineList.get(0);
+		}
+
+		return result;
+	}
+
+	/**
+	 * 2手前の評価値からの上昇分の悲観合議を実行
+	 * 
+	 * @return
+	 */
+	private UsiEngine gougi_2temae_joushou_hikan() {
+		// bestmoveが返ってきていないエンジンが存在する場合
+		if (ShogiUtils.containsEmptyBestmove(usiEngineList)) {
+			return null;
+		}
+
+		// 戻り値用
+		UsiEngine result = null;
+		// 「2手前の評価値からの上昇分」の最小値
+		int min_score = Integer.MAX_VALUE;
+
+		// 「2手前の評価値からの上昇分」が最大のエンジンを求める
+		for (UsiEngine engine : usiEngineList) {
+			int score = engine.getScore2TemaeJoushou();
 			if (score != Constants.SCORE_NONE && score < min_score) {
 				result = engine;
 				min_score = score;

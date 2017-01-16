@@ -248,4 +248,47 @@ public class ShogiUtils {
 		}
 	}
 
+	/**
+	 * 評価値（文字列）から評価値（数値）を取得
+	 * （例）「502」→「502」
+	 * （例）「-1234」→「-1234」
+	 * （例）「mate 3」→「99997」
+	 * （例）「mate -2」→「-99998」
+	 * （例）「mate」→「Constants.SCORE_NONE」
+	 * （例）「""」→「Constants.SCORE_NONE」
+	 * 
+	 * @param strScore
+	 * @return
+	 */
+	public static int getScoreFromStrScore(String strScore) {
+		try {
+			if (Utils.isEmpty(strScore)) {
+				return Constants.SCORE_NONE;
+			}
+
+			if (strScore.startsWith("mate ")) {
+				// （例）「3」「-2」
+				int mate = Integer.parseInt(Utils.getSplitResult(strScore, " ", 1));
+
+				if (mate > 0) {
+					// （例）99997
+					return Constants.SCORE_MATE - mate;
+				} else if (mate < 0) {
+					// （例）-99998
+					return -(Constants.SCORE_MATE + mate);
+				} else {
+					return Constants.SCORE_NONE;
+				}
+			}
+
+			else {
+				// （例）「502」「-1234」
+				return Integer.parseInt(strScore);
+			}
+
+		} catch (Exception e) {
+			return Constants.SCORE_NONE;
+		}
+	}
+
 }

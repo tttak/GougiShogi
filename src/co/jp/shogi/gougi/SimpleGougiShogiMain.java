@@ -525,11 +525,10 @@ public class SimpleGougiShogiMain {
 						if (goFlg && command.startsWith("bestmove")) {
 							// bestmoveをエンジンに保存
 							engine.setBestmoveCommand(command);
-							// （例）「info string bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
+							// （例）「info string bestmove 7g7f [７六(77)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
 							// [ponder対応]
-							// （例）「info string bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123] [Gikou 20160606]」
-							// systemOutputThread.getCommandList().add("info string " + engine.getBestmoveScoreDisp());
-							systemOutputThread.getCommandList().add("info string " + engine.getBestmovePonderScoreDisp());
+							// （例）「info string bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
+							systemOutputThread.getCommandList().add("info string " + engine.getBestmoveScoreDisp(true));
 						}
 
 						// その他の場合、標準出力（GUI側）へのコマンドリストに追加
@@ -590,11 +589,13 @@ public class SimpleGougiShogiMain {
 					// このエンジンの指し手が採用されたか否か。丸とバツだが、「O」と「X」で代替する。
 					String hantei = engineBest.equals(bestmoveCommand) ? "O" : "X";
 
-					// （例）「info string [O] bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
+					// （例）「info string [O] bestmove 7g7f [７六(77)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
 					// [ponder対応]
-					// （例）「info string [O] bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123] [Gikou 20160606]」
-					// systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp());
-					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmovePonderScoreDisp());
+					// （例）「info string [O] bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
+					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp(true));
+
+					// 【前回の値】を保存
+					engine.savePrevValue();
 				}
 
 				// bestmoveをGUIへ返す

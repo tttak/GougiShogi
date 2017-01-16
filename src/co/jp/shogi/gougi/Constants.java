@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20170115";
+	public static final String USI_ID_NAME = "SimpleGougiShogi_20170116";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 
@@ -29,6 +29,10 @@ public class Constants {
 	public static final String GOUGI_TYPE_HIKAN = "悲観合議";
 	/** 【合議タイプ】楽観合議と悲観合議を交互 */
 	public static final String GOUGI_TYPE_RAKKAN_HIKAN_BYTURNS = "楽観合議と悲観合議を交互";
+	/** 【合議タイプ】2手前の評価値からの上昇分の楽観合議 */
+	public static final String GOUGI_TYPE_2TEMAE_JOUSHOU_RAKKAN = "2手前の評価値からの上昇分の楽観合議";
+	/** 【合議タイプ】2手前の評価値からの上昇分の悲観合議 */
+	public static final String GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN = "2手前の評価値からの上昇分の悲観合議";
 
 	/** 合議タイプのリスト */
 	public static final List<String> GOUGI_TYPE_LIST;
@@ -38,6 +42,8 @@ public class Constants {
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_RAKKAN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_HIKAN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_RAKKAN_HIKAN_BYTURNS);
+		GOUGI_TYPE_LIST.add(GOUGI_TYPE_2TEMAE_JOUSHOU_RAKKAN);
+		GOUGI_TYPE_LIST.add(GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN);
 	}
 
 	/** 評価値未設定 */

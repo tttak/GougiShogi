@@ -34,6 +34,11 @@ public class UsiEngine {
 	/** 直近の読み筋 （例）「info depth 3 seldepth 4 multipv 1 score cp 502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」 */
 	private String lastPv;
 
+	/** 【前回の値】bestmoveコマンド （例）「bestmove 3i4h ponder 3c8h+」 */
+	private String prev_bestmoveCommand;
+	/** 【前回の値】直近の読み筋 （例）「info depth 3 seldepth 4 multipv 1 score cp 502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」 */
+	private String prev_lastPv;
+
 	/**
 	 * プロセスの終了
 	 */
@@ -111,37 +116,48 @@ public class UsiEngine {
 	 * @return
 	 */
 	public int getLastScore() {
-		try {
-			// 直近の評価値（文字列）を取得
-			// （例）「502」「-1234」「mate 3」「mate -2」「""」
-			String strScore = getLastStrScore();
+		// 直近の評価値（文字列）を取得
+		// （例）「502」「-1234」「mate 3」「mate -2」「""」
+		String strScore = getLastStrScore();
 
-			if (Utils.isEmpty(strScore)) {
-				return Constants.SCORE_NONE;
-			}
+		return ShogiUtils.getScoreFromStrScore(strScore);
+	}
 
-			if (strScore.startsWith("mate ")) {
-				// （例）「3」「-2」
-				int mate = Integer.parseInt(Utils.getSplitResult(strScore, " ", 1));
+	/**
+	 * 【前回の値】直近の評価値（文字列）を取得
+	 * 
+	 * @return
+	 */
+	public String getPrevLastStrScore() {
+		return ShogiUtils.getStrScoreFromInfoPv(prev_lastPv);
+	}
 
-				if (mate > 0) {
-					// （例）99997
-					return Constants.SCORE_MATE - mate;
-				} else if (mate < 0) {
-					// （例）-99998
-					return -(Constants.SCORE_MATE + mate);
-				} else {
-					return Constants.SCORE_NONE;
-				}
-			}
+	/**
+	 * 【前回の値】直近の評価値（数値）を取得
+	 * 
+	 * @return
+	 */
+	public int getPrevLastScore() {
+		// 【前回の値】直近の評価値（文字列）を取得
+		// （例）「502」「-1234」「mate 3」「mate -2」「""」
+		String strScore = getPrevLastStrScore();
 
-			else {
-				// （例）「502」「-1234」
-				return Integer.parseInt(strScore);
-			}
+		return ShogiUtils.getScoreFromStrScore(strScore);
+	}
 
-		} catch (Exception e) {
+	/**
+	 * 2手前の評価値からの上昇分を取得
+	 * 
+	 * @return
+	 */
+	public int getScore2TemaeJoushou() {
+		int current_score = getLastScore();
+		int prev_score = getPrevLastScore();
+
+		if (current_score == Constants.SCORE_NONE || prev_score == Constants.SCORE_NONE) {
 			return Constants.SCORE_NONE;
+		} else {
+			return current_score - prev_score;
 		}
 	}
 
@@ -193,51 +209,74 @@ public class UsiEngine {
 	}
 
 	/**
-	 * bestmove、評価値の表示用文字列を取得
-	 * （例）「bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
+	 * bestmove、ponder、評価値の表示用文字列を取得
+	 * （例）引数ponderがtrueの場合　「bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
+	 * （例）引数ponderがfalseの場合「bestmove 7g7f [７六(77)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
+	 * ・本来は「info string」で全角文字はNGかもしれないが．．．
 	 * 
+	 * @param ponder
 	 * @return
 	 */
-	public String getBestmoveScoreDisp() {
+	public String getBestmoveScoreDisp(boolean ponder) {
+		StringBuilder sb = new StringBuilder();
+
 		// （例）「bestmove 7g7f」
 		String bestmoveExceptPonder = getBestmoveCommandExceptPonder();
 		if (bestmoveExceptPonder == null) {
 			bestmoveExceptPonder = "";
 		}
 
-		// （例）「7g7f」
-		String move = Utils.getSplitResult(bestmoveExceptPonder, " ", 1);
-		// （例）「7g7f」→「７六(77)」
-		// ・本来は「info string」で全角文字はNGかもしれないが．．．
-		String moveDispJa = ShogiUtils.getMoveDispJa(move);
-		// （例）「bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
-		return bestmoveExceptPonder + " [" + moveDispJa + "] [評価値 " + getLastStrScore() + "] [" + usiName + "]";
-	}
+		if (ponder) {
+			// （例）「bestmove 7g7f ponder 3c3d」
+			sb.append(bestmoveCommand);
+		} else {
+			// （例）「bestmove 7g7f」
+			sb.append(bestmoveExceptPonder);
+		}
 
-	/**
-	 * bestmove、ponder、評価値の表示用文字列を取得
-	 * （例）「bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123] [Gikou 20160606]」
-	 * 
-	 * @return
-	 */
-	public String getBestmovePonderScoreDisp() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(bestmoveCommand);
 		sb.append(" [");
+		// （例）「７六(77)」
 		sb.append(ShogiUtils.getMoveDispJa(getBestmove()));
 
+		// （例）「3c3d」
 		String ponderMove = getPonderMove();
-		if (getPonderMove() != null) {
-			sb.append(" ");
-			sb.append(ShogiUtils.getMoveDispJa(ponderMove));
+		if (ponder) {
+			if (ponderMove != null) {
+				sb.append(" ");
+				// （例）「３四(33)」
+				sb.append(ShogiUtils.getMoveDispJa(ponderMove));
+			}
 		}
 
 		sb.append("] [評価値 ");
 		sb.append(getLastStrScore());
-		sb.append("] [");
+		sb.append(" （前回");
+		sb.append(getPrevLastStrScore());
+		sb.append(" 差分");
+
+		// 2手前の評価値からの上昇分
+		int score2TemaeJousho = getScore2TemaeJoushou();
+		if (score2TemaeJousho == Constants.SCORE_NONE) {
+			sb.append(" ");
+		} else {
+			sb.append(score2TemaeJousho);
+		}
+
+		sb.append("）] [");
 		sb.append(usiName);
 		sb.append("]");
+
 		return sb.toString();
+	}
+
+	/**
+	 * 【前回の値】を保存
+	 */
+	public void savePrevValue() {
+		// 【前回の値】bestmoveコマンド
+		prev_bestmoveCommand = bestmoveCommand;
+		// 【前回の値】直近の読み筋
+		prev_lastPv = lastPv;
 	}
 
 	// ------------------------------ 単純なGetter&Setter START ------------------------------
@@ -320,6 +359,22 @@ public class UsiEngine {
 
 	public void setPonderFlg(boolean ponderFlg) {
 		this.ponderFlg = ponderFlg;
+	}
+
+	public String getPrev_bestmoveCommand() {
+		return prev_bestmoveCommand;
+	}
+
+	public void setPrev_bestmoveCommand(String prev_bestmoveCommand) {
+		this.prev_bestmoveCommand = prev_bestmoveCommand;
+	}
+
+	public String getPrev_lastPv() {
+		return prev_lastPv;
+	}
+
+	public void setPrev_lastPv(String prev_lastPv) {
+		this.prev_lastPv = prev_lastPv;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------
