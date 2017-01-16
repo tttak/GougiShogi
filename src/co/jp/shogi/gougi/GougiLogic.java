@@ -154,7 +154,7 @@ public class GougiLogic {
 		// 評価値の最小値
 		int min_score = Integer.MAX_VALUE;
 
-		// 評価値が最大のエンジンを求める
+		// 評価値が最小のエンジンを求める
 		for (UsiEngine engine : usiEngineList) {
 			int score = engine.getLastScore();
 			if (score != Constants.SCORE_NONE && score < min_score) {
@@ -222,7 +222,7 @@ public class GougiLogic {
 		// 「2手前の評価値からの上昇分」の最小値
 		int min_score = Integer.MAX_VALUE;
 
-		// 「2手前の評価値からの上昇分」が最大のエンジンを求める
+		// 「2手前の評価値からの上昇分」が最小のエンジンを求める
 		for (UsiEngine engine : usiEngineList) {
 			int score = engine.getScore2TemaeJoushou();
 			if (score != Constants.SCORE_NONE && score < min_score) {
