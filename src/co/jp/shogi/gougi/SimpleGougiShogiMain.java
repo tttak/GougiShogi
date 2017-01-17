@@ -480,6 +480,9 @@ public class SimpleGougiShogiMain {
 			processInputThread.waitUntilCommand("readyok");
 			// 「readyok」を削除
 			processInputThread.getCommandList().remove("readyok");
+
+			// ついでにここでクリア処理
+			engine.clear();
 		}
 
 		// すべてのエンジンから「readyok」が返ってきたら、GUIに「readyok」を1回だけ返す

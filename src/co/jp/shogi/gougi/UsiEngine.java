@@ -279,6 +279,16 @@ public class UsiEngine {
 		prev_lastPv = lastPv;
 	}
 
+	/**
+	 * ƒNƒŠƒAˆ—
+	 */
+	public void clear() {
+		bestmoveCommand = null;
+		lastPv = null;
+		prev_bestmoveCommand = null;
+		prev_lastPv = null;
+	}
+
 	// ------------------------------ ’Pƒ‚ÈGetter&Setter START ------------------------------
 
 	public File getExeFile() {
