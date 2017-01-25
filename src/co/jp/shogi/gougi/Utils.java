@@ -125,6 +125,48 @@ public class Utils {
 	}
 
 	/**
+	 * list内の、prefixで始まる文字列の要素を返す
+	 * 
+	 * @param list
+	 * @param prefix
+	 * @return
+	 */
+	public static String getItemStartsWith(List<String> list, String prefix) {
+		if (list == null) {
+			return null;
+		}
+
+		for (String str : list) {
+			if (str.startsWith(prefix)) {
+				return str;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * prefixで始まる文字列をlistから削除する
+	 * 
+	 * @param list
+	 * @param prefix
+	 */
+	public static void removeFromListWhereStartsWith(List<String> list, String prefix) {
+		if (list == null) {
+			return;
+		}
+
+		while (true) {
+			String str = getItemStartsWith(list, prefix);
+			if (Utils.isEmpty(str)) {
+				return;
+			}
+
+			list.remove(str);
+		}
+	}
+
+	/**
 	 * 文字列が空か否かの判定
 	 * 
 	 * @param str
@@ -223,6 +265,22 @@ public class Utils {
 		} catch (Exception e) {
 			return "";
 		}
+	}
+
+	/**
+	 * listにstrが含まれるか否かを返す
+	 * ・listがnullの場合、falseを返す
+	 * 
+	 * @param list
+	 * @param str
+	 * @return
+	 */
+	public static boolean contains(List<String> list, String str) {
+		if (list == null) {
+			return false;
+		}
+
+		return list.contains(str);
 	}
 
 }

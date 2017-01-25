@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20170117";
+	public static final String USI_ID_NAME = "SimpleGougiShogi_20170125";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 
@@ -17,9 +17,11 @@ public class Constants {
 	public static final String CONFIG_FILENAME = "SimpleGougiShogi.config";
 
 	/** USIエンジンリストの最大件数 */
-	public static final int MAX_ENGINE_COUNT = 10;
-	/** 多数決合議（3者）の場合のUSIエンジンリストの件数 */
-	public static final int TASUUKETSU_3_ENGINE_COUNT = 3;
+	public static final int ENGINE_COUNT_MAX = 10;
+	/** 「多数決合議（3者）」の場合のUSIエンジンリストの件数 */
+	public static final int ENGINE_COUNT_TASUUKETSU_3 = 3;
+	/** 「各々の最善手を交換して評価値の合計で判定（2者）」の場合のUSIエンジンリストの件数 */
+	public static final int ENGINE_COUNT_BESTMOVE_EXCHANGE_2 = 2;
 
 	/** 【合議タイプ】多数決合議（3者） */
 	public static final String GOUGI_TYPE_TASUUKETSU_3 = "多数決合議（3者）";
@@ -33,6 +35,8 @@ public class Constants {
 	public static final String GOUGI_TYPE_2TEMAE_JOUSHOU_RAKKAN = "2手前の評価値からの上昇分の楽観合議";
 	/** 【合議タイプ】2手前の評価値からの上昇分の悲観合議 */
 	public static final String GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN = "2手前の評価値からの上昇分の悲観合議";
+	/** 【合議タイプ】各々の最善手を交換して評価値の合計で判定（2者） */
+	public static final String GOUGI_TYPE_BESTMOVE_EXCHANGE_2 = "各々の最善手を交換して評価値の合計で判定（2者）";
 
 	/** 合議タイプのリスト */
 	public static final List<String> GOUGI_TYPE_LIST;
@@ -44,6 +48,7 @@ public class Constants {
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_RAKKAN_HIKAN_BYTURNS);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_2TEMAE_JOUSHOU_RAKKAN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN);
+		GOUGI_TYPE_LIST.add(GOUGI_TYPE_BESTMOVE_EXCHANGE_2);
 	}
 
 	/** 評価値未設定 */

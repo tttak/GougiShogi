@@ -67,7 +67,7 @@ public class GougiConfig {
 				}
 
 				// エンジンの設定
-				for (int i = 1; i <= Constants.MAX_ENGINE_COUNT; i++) {
+				for (int i = 1; i <= Constants.ENGINE_COUNT_MAX; i++) {
 					String str = "Engine" + i + ".Path=";
 
 					// （例）「Engine1.Path=」で始まる行の場合
@@ -120,9 +120,18 @@ public class GougiConfig {
 		// 合議タイプが「多数決合議（3者）」の場合
 		if (Constants.GOUGI_TYPE_TASUUKETSU_3.equals(gougiType)) {
 			// エンジンが3個ではない場合
-			if (usiEngineList.size() != Constants.TASUUKETSU_3_ENGINE_COUNT) {
+			if (usiEngineList.size() != Constants.ENGINE_COUNT_TASUUKETSU_3) {
 				// チェックNG
 				return "合議タイプが「多数決合議（3者）」の場合、エンジンは3種類設定してください。";
+			}
+		}
+
+		// 合議タイプが「各々の最善手を交換して評価値の合計で判定（2者）」の場合
+		if (Constants.GOUGI_TYPE_BESTMOVE_EXCHANGE_2.equals(gougiType)) {
+			// エンジンが2個ではない場合
+			if (usiEngineList.size() != Constants.ENGINE_COUNT_BESTMOVE_EXCHANGE_2) {
+				// チェックNG
+				return "合議タイプが「各々の最善手を交換して評価値の合計で判定（2者）」の場合、エンジンは2種類設定してください。";
 			}
 		}
 
@@ -154,7 +163,7 @@ public class GougiConfig {
 	private List<UsiEngine> sort(List<UsiEngine> usiEngineList) {
 		List<UsiEngine> list = new ArrayList<UsiEngine>();
 
-		for (int i = 1; i <= Constants.MAX_ENGINE_COUNT; i++) {
+		for (int i = 1; i <= Constants.ENGINE_COUNT_MAX; i++) {
 			UsiEngine engine = ShogiUtils.getEngine(usiEngineList, i);
 			if (engine != null) {
 				list.add(engine);

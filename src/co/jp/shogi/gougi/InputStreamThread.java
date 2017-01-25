@@ -69,12 +69,51 @@ public class InputStreamThread extends Thread {
 
 	/**
 	 * 特定のコマンドを受信するまで待つ
+	 * ・timeoutはミリ秒で指定
 	 * 
 	 * @param command
+	 * @param timeout
 	 */
-	public void waitUntilCommand(String command) {
+	public void waitUntilCommand(String command, int timeout) {
 		try {
-			while (!commandList.contains(command)) {
+			long time_start = System.currentTimeMillis();
+			while (true) {
+				synchronized (this) {
+					if (commandList.contains(command)) {
+						break;
+					}
+				}
+				if (System.currentTimeMillis() > time_start + timeout) {
+					logger.info("[waitUntilCommand]タイムアウト発生：" + command + "," + timeout);
+					break;
+				}
+				Thread.sleep(10);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 特定の文字列で始まるコマンドを受信するまで待つ
+	 * ・timeoutはミリ秒で指定
+	 * 
+	 * @param prefix
+	 * @param timeout
+	 */
+	public void waitUntilCommandStartsWith(String prefix, int timeout) {
+		try {
+			long time_start = System.currentTimeMillis();
+			while (true) {
+				synchronized (this) {
+					if (Utils.containsStartsWith(commandList, prefix)) {
+						break;
+					}
+				}
+				if (System.currentTimeMillis() > time_start + timeout) {
+					logger.info("[waitUntilCommandStartsWith]タイムアウト発生：" + prefix + "," + timeout);
+					break;
+				}
 				Thread.sleep(10);
 			}
 		} catch (InterruptedException e) {

@@ -14,9 +14,20 @@ public class ShogiUtils {
 	 * 
 	 * @param usiEngineList
 	 */
-	public static void clearBestmoveLastPv(List<UsiEngine> usiEngineList) {
+	public static void clearBestmoveLatestPv(List<UsiEngine> usiEngineList) {
 		for (UsiEngine engine : usiEngineList) {
-			engine.clearBestmoveLastPv();
+			engine.clearBestmoveLatestPv();
+		}
+	}
+
+	/**
+	 * 全エンジンの【最善手の交換前の値】bestmove、直近の読み筋をクリアする
+	 * 
+	 * @param usiEngineList
+	 */
+	public static void clear_before_exchange_BestmoveLatestPv(List<UsiEngine> usiEngineList) {
+		for (UsiEngine engine : usiEngineList) {
+			engine.clearBestmoveLatestPv();
 		}
 	}
 
@@ -288,6 +299,59 @@ public class ShogiUtils {
 
 		} catch (Exception e) {
 			return Constants.SCORE_NONE;
+		}
+	}
+
+	/**
+	 * 「両エンジンのbestmoveの指し手とponderの指し手がともに存在し、かつ、等しい」か否かを返す
+	 * 
+	 * @param engine1
+	 * @param engine2
+	 * @return
+	 */
+	public static boolean equalsBestmoveAndPondermove(UsiEngine engine1, UsiEngine engine2) {
+		if (Utils.isEmpty(engine1.getBestmove())) {
+			return false;
+		}
+		if (Utils.isEmpty(engine2.getBestmove())) {
+			return false;
+		}
+		if (Utils.isEmpty(engine1.getPonderMove())) {
+			return false;
+		}
+		if (Utils.isEmpty(engine2.getPonderMove())) {
+			return false;
+		}
+
+		return engine1.getBestmove().equals(engine2.getBestmove()) && engine1.getPonderMove().equals(engine2.getPonderMove());
+	}
+
+	/**
+	 * 局面に指し手を追加
+	 * （例）「position startpos moves 7g7f」 + 「3c3d」 → 「position startpos moves 7g7f 3c3d」
+	 * （例）「position startpos」 + 「7g7f」 → 「position startpos moves 7g7f」
+	 * 
+	 * @param position
+	 * @param move
+	 * @return
+	 */
+	public static String appendMove(String position, String move) {
+		if (position.contains(" moves ")) {
+			return position + " " + move;
+		} else {
+			return position + " moves " + move;
+		}
+	}
+
+	/**
+	 * 全エンジンについて、「事前ponder実施中か否か」のフラグをセットする
+	 * 
+	 * @param usiEngineList
+	 * @param prePondering
+	 */
+	public static void setPrePondering(List<UsiEngine> usiEngineList, boolean prePondering) {
+		for (UsiEngine engine : usiEngineList) {
+			engine.setPrePondering(prePondering);
 		}
 	}
 

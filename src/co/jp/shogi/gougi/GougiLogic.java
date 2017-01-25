@@ -61,6 +61,11 @@ public class GougiLogic {
 			return gougi_2temae_joushou_hikan();
 		}
 
+		// 「各々の最善手を交換して評価値の合計で判定（2者）」の場合
+		else if (Constants.GOUGI_TYPE_BESTMOVE_EXCHANGE_2.equals(gougiType)) {
+			return gougi_bestmove_exchange_2();
+		}
+
 		// その他の場合
 		else {
 			return null;
@@ -85,7 +90,7 @@ public class GougiLogic {
 		Map<String, Integer> bestmoveCountMap = ShogiUtils.createBestmoveCountMap(usiEngineList);
 
 		// 三者三様の場合
-		if (bestmoveCountMap.size() >= Constants.TASUUKETSU_3_ENGINE_COUNT) {
+		if (bestmoveCountMap.size() >= Constants.ENGINE_COUNT_TASUUKETSU_3) {
 			// エンジン1の指し手を採用する
 			return usiEngineList.get(0);
 		}
@@ -122,7 +127,7 @@ public class GougiLogic {
 
 		// 評価値が最大のエンジンを求める
 		for (UsiEngine engine : usiEngineList) {
-			int score = engine.getLastScore();
+			int score = engine.getLatestScore();
 			if (score != Constants.SCORE_NONE && score > max_score) {
 				result = engine;
 				max_score = score;
@@ -156,7 +161,7 @@ public class GougiLogic {
 
 		// 評価値が最小のエンジンを求める
 		for (UsiEngine engine : usiEngineList) {
-			int score = engine.getLastScore();
+			int score = engine.getLatestScore();
 			if (score != Constants.SCORE_NONE && score < min_score) {
 				result = engine;
 				min_score = score;
@@ -238,6 +243,42 @@ public class GougiLogic {
 		}
 
 		return result;
+	}
+
+	/**
+	 * 「各々の最善手を交換して評価値の合計で判定（2者）」の合議を実行
+	 * 
+	 * @return
+	 */
+	private UsiEngine gougi_bestmove_exchange_2() {
+		// bestmoveが返ってきていないエンジンが存在する場合
+		if (ShogiUtils.containsEmptyBestmove(usiEngineList)) {
+			return null;
+		}
+
+		// 合議タイプ「各々の最善手を交換して評価値の合計で判定（2者）」の場合、エンジンは必ず2個
+		UsiEngine engine1 = usiEngineList.get(0);
+		UsiEngine engine2 = usiEngineList.get(1);
+
+		// 交換前の評価値
+		int bf_score1 = engine1.get_before_exchange_LatestScore();
+		int bf_score2 = engine2.get_before_exchange_LatestScore();
+
+		// 交換後の評価値
+		// ・エンジンを逆にして、-1倍する
+		int af_score1 = -engine2.getLatestScore();
+		int af_score2 = -engine1.getLatestScore();
+
+		// 評価値の和
+		int sum_score1 = bf_score1 + af_score1;
+		int sum_score2 = bf_score2 + af_score2;
+
+		// 評価値の和で判定する
+		if (sum_score1 >= sum_score2) {
+			return engine1;
+		} else {
+			return engine2;
+		}
 	}
 
 	// ------------------------------ 単純なGetter&Setter START ------------------------------

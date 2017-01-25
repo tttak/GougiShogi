@@ -94,10 +94,23 @@ public class OutputStreamThread extends Thread {
 
 	/**
 	 * コマンドリストが空になるまで待つ
+	 * ・timeoutはミリ秒で指定
+	 * 
+	 * @param timeout
 	 */
-	public void waitUntilEmpty() {
+	public void waitUntilEmpty(int timeout) {
 		try {
-			while (!commandList.isEmpty()) {
+			long time_start = System.currentTimeMillis();
+			while (true) {
+				synchronized (this) {
+					if (commandList.isEmpty()) {
+						break;
+					}
+				}
+				if (System.currentTimeMillis() > time_start + timeout) {
+					logger.info("[waitUntilEmpty]タイムアウト発生：" + timeout);
+					break;
+				}
 				Thread.sleep(10);
 			}
 		} catch (InterruptedException e) {
