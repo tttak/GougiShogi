@@ -186,11 +186,11 @@ public class StateInfo {
 	 * ・直近の「go」コマンドで、自分の持ち時間部分を引数value倍する
 	 * 
 	 * ・自分が先手で、valueが0.4の場合
-	 * （例）「btime 60000 wtime 50000 byoyomi 10000」
+	 * （例）「go btime 60000 wtime 50000 byoyomi 10000」
 	 * →「btime 24000 wtime 50000 byoyomi 4000」
-	 * （例）「btime 40000 wtime 50000 binc 10000 winc 10000」
+	 * （例）「go ponder btime 40000 wtime 50000 binc 10000 winc 10000」
 	 * →「btime 16000 wtime 50000 binc 4000 winc 10000」
-	 * （例）「btime 0 wtime 0 byoyomi 2000」
+	 * （例）「go btime 0 wtime 0 byoyomi 2000」
 	 * →「btime 0 wtime 0 byoyomi 800」
 	 * 
 	 * @return

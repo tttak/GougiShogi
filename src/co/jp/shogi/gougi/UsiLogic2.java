@@ -249,7 +249,8 @@ public class UsiLogic2 extends UsiLogicCommon {
 					engine.getOutputThread().getCommandList().add(sendPosition);
 
 					// 持ち時間を0.45倍する
-					engine.getOutputThread().getCommandList().add("go " + StateInfo.getInstance().getGoTimeOption(0.45));
+					// ・時間オプションの先後を入れ替える
+					engine.getOutputThread().getCommandList().add("go " + ShogiUtils.reverseGoTimeOption(StateInfo.getInstance().getGoTimeOption(0.45)));
 				}
 			}
 

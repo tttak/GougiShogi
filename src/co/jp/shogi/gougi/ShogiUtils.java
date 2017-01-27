@@ -355,4 +355,33 @@ public class ShogiUtils {
 		}
 	}
 
+	/**
+	 * 「go」コマンドの時間オプションの先後を入れ替える
+	 * 
+	 * （例）「btime 60000 wtime 50000 byoyomi 10000」
+	 * →「wtime 60000 btime 50000 byoyomi 10000」
+	 * （例）「btime 40000 wtime 50000 binc 10000 winc 8000」
+	 * →「wtime 40000 btime 50000 winc 10000 binc 8000」
+	 * 
+	 * @param option
+	 * @return
+	 */
+	public static String reverseGoTimeOption(String option) {
+		try {
+			String s = option;
+
+			s = s.replaceAll("btime", "temp");
+			s = s.replaceAll("wtime", "btime");
+			s = s.replaceAll("temp", "wtime");
+
+			s = s.replaceAll("binc", "temp");
+			s = s.replaceAll("winc", "binc");
+			s = s.replaceAll("temp", "winc");
+
+			return s;
+		} catch (Exception e) {
+			return option;
+		}
+	}
+
 }
