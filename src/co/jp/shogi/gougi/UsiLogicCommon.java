@@ -54,6 +54,13 @@ public class UsiLogicCommon {
 					// StateInfoのlatestSysinGoCommandにセット（時間計測用）
 					StateInfo.getInstance().setLatestSysinGoCommand(command);
 					pendingSysinCommandList.add(command);
+
+					// 「go ponder」の直後に「ponderhit」や「stop」が来ることがあるので、この時点でponder実施中フラグをセットしておく
+					if (command.startsWith("go ponder")) {
+						// ponder実施中フラグをセット
+						StateInfo.getInstance().setPondering(true);
+					}
+
 					continue;
 				}
 
