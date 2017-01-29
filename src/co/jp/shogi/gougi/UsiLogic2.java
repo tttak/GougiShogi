@@ -71,6 +71,7 @@ public class UsiLogic2 extends UsiLogicCommon {
 				// ponder時のstopの場合
 				else if (StateInfo.getInstance().isPondering() && "stop".equals(command)) {
 					logger.info("ponder時のstopの場合 START");
+					StateInfo.getInstance().setPondering(false);
 					// 自分の手番
 					StateInfo.getInstance().setMyTurn(true);
 					// stop時のponder終了処理
@@ -81,6 +82,7 @@ public class UsiLogic2 extends UsiLogicCommon {
 				// ponder時のponderhitの場合
 				else if (StateInfo.getInstance().isPondering() && "ponderhit".equals(command)) {
 					logger.info("ponder時のponderhitの場合 START");
+					StateInfo.getInstance().setPondering(false);
 					// 自分の手番
 					StateInfo.getInstance().setMyTurn(true);
 					// 全エンジンにコマンド送信
