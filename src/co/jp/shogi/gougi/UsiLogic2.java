@@ -49,6 +49,44 @@ public class UsiLogic2 extends UsiLogicCommon {
 					sysinToEnginesAtGo(command, usiEngineList);
 					logger.info("「go」の場合 END");
 				}
+
+				// 「go ponder」コマンドの場合
+				else if (command.startsWith("go ponder")) {
+					logger.info("「go ponder」の場合 START");
+					// 相手の手番
+					StateInfo.getInstance().setMyTurn(false);
+					// 最善手の交換前
+					StateInfo.getInstance().setBefore_exchange_flg(true);
+					// 全エンジンのbestmove、直近の読み筋をクリア
+					ShogiUtils.clearBestmoveLatestPv(usiEngineList);
+					// 全エンジンの【最善手の交換前の値】bestmove、直近の読み筋をクリア
+					ShogiUtils.clear_before_exchange_BestmoveLatestPv(usiEngineList);
+					// ponder実施中フラグをセット
+					StateInfo.getInstance().setPondering(true);
+					// 標準入力（GUI側）からのコマンドを各エンジンへのコマンドリストに追加する（「go ponder」の場合）
+					sysinToEnginesAtGoPonder(command, usiEngineList);
+					logger.info("「go ponder」の場合 END");
+				}
+
+				// ponder時のstopの場合
+				else if (StateInfo.getInstance().isPondering() && "stop".equals(command)) {
+					logger.info("ponder時のstopの場合 START");
+					// 自分の手番
+					StateInfo.getInstance().setMyTurn(true);
+					// stop時のponder終了処理
+					endPonderAtStop(systemInputThread, systemOutputThread, usiEngineList);
+					logger.info("ponder時のstopの場合 END");
+				}
+
+				// ponder時のponderhitの場合
+				else if (StateInfo.getInstance().isPondering() && "ponderhit".equals(command)) {
+					logger.info("ponder時のponderhitの場合 START");
+					// 自分の手番
+					StateInfo.getInstance().setMyTurn(true);
+					// 全エンジンにコマンド送信
+					ShogiUtils.sendCommandToAllEngines(usiEngineList, command);
+					logger.info("ponder時のponderhitの場合 END");
+				}
 			}
 
 			// 標準入力（GUI側）からのコマンドに「quit」が含まれる場合
@@ -131,6 +169,82 @@ public class UsiLogic2 extends UsiLogicCommon {
 				// engine.getOutputThread().getCommandList().add(goCommand);
 				engine.getOutputThread().getCommandList().add("go " + StateInfo.getInstance().getGoTimeOption(0.45));
 			}
+		}
+	}
+
+	/**
+	 * 標準入力（GUI側）からのコマンドを各エンジンへのコマンドリストに追加する（「go ponder」の場合）
+	 * 
+	 * @param goCommand
+	 * @param usiEngineList
+	 */
+	protected void sysinToEnginesAtGoPonder(String goCommand, List<UsiEngine> usiEngineList) {
+		// 直近の「position」コマンドの局面を取得
+		String position = StateInfo.getInstance().getLatestPosition();
+		// 直近の「go ponder」コマンドの局面にセット
+		StateInfo.getInstance().setLatestGoPonderPosition(position);
+
+		for (UsiEngine engine : usiEngineList) {
+			// 各エンジンへのコマンドリストに追加
+			// ・スレッドの排他制御
+			synchronized (engine.getOutputThread()) {
+				engine.getOutputThread().getCommandList().add(position);
+
+				// 持ち時間を0.45倍する
+				// engine.getOutputThread().getCommandList().add(goCommand);
+				engine.getOutputThread().getCommandList().add("go ponder " + StateInfo.getInstance().getGoTimeOption(0.45));
+			}
+		}
+	}
+
+	/**
+	 * stop時のponder終了処理
+	 * 
+	 * @param systemInputThread
+	 * @param systemOutputThread
+	 * @param usiEngineList
+	 */
+	private void endPonderAtStop(InputStreamThread systemInputThread, OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
+		boolean firstFlg = true;
+		String bestmoveCommand = "bestmove";
+
+		// 各エンジンをループ
+		for (UsiEngine engine : usiEngineList) {
+			logger.info("GUIからstop受信時、当該エンジンに「stop」コマンドを送信[" + engine.getUsiName() + "]");
+
+			// 当該エンジンに「stop」コマンドを送信
+			// ・スレッドの排他制御
+			synchronized (engine.getOutputThread()) {
+				engine.getOutputThread().getCommandList().add("stop");
+			}
+
+			// 当該エンジンから「bestmove」が返ってくるまで待つ
+			engine.getInputThread().waitUntilCommandStartsWith("bestmove", 10 * 1000);
+			logger.info("GUIからstop受信時、当該エンジンに「stop」コマンドを送信した後、「bestmove」受信[" + engine.getUsiName() + "]");
+
+			// 1件目の場合
+			if (firstFlg) {
+				firstFlg = false;
+
+				// 「bestmove」を取得
+				// ・スレッドの排他制御
+				synchronized (engine.getInputThread()) {
+					bestmoveCommand = Utils.getItemStartsWith(engine.getInputThread().getCommandList(), "bestmove");
+				}
+			}
+
+			// 「bestmove」を削除
+			// ・スレッドの排他制御
+			synchronized (engine.getInputThread()) {
+				Utils.removeFromListWhereStartsWith(engine.getInputThread().getCommandList(), "bestmove");
+				logger.info("GUIからstop受信時、当該エンジンに「stop」コマンドを送信した後、「bestmove」受信したが、コマンドリストから削除[" + engine.getUsiName() + "]");
+			}
+		}
+
+		// GUIに「bestmove」を1回だけ返す
+		// ・スレッドの排他制御
+		synchronized (systemOutputThread) {
+			systemOutputThread.getCommandList().add(bestmoveCommand);
 		}
 	}
 
@@ -218,8 +332,12 @@ public class UsiLogic2 extends UsiLogicCommon {
 			if (bestmove1.equals(bestmove2) || "resign".equals(bestmove1) || "resign".equals(bestmove2)) {
 				logger.info("最善手の交換前だが、お互いの最善手が一致したのでbestmove等を標準出力（GUI側）へ送信する");
 
+				// 評価値の大きな方を合議結果のエンジンとする
+				// ・どちらを選んでも指し手は同じだが、ponderは異なることがある
+				UsiEngine resultEngine = (engine1.getLatestScore() > engine2.getLatestScore()) ? engine1 : engine2;
+
 				// bestmove等を標準出力（GUI側）へ送信（最善手の交換前の場合）
-				sendBestMoveBeforeExchange(systemOutputThread, usiEngineList, engine1);
+				sendBestMoveBeforeExchange(systemOutputThread, usiEngineList, resultEngine);
 
 				// 合議完了
 				return true;
@@ -306,12 +424,15 @@ public class UsiLogic2 extends UsiLogicCommon {
 				String hantei = engineBest.equals(bestmoveCommand) ? "O" : "X";
 
 				// （例）「info string [O] bestmove 7g7f [７六(77)] [評価値 123] [Gikou 20160606]」
-				systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp(false, false));
+				// →「info string [O] bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123] [Gikou 20160606]」
+				// systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp(false, false));
+				systemOutputThread.getCommandList().add("info string [" + hantei + "] " + engine.getBestmoveScoreDisp(true, false));
 			}
 
 			// bestmoveをGUIへ返す
-			// ・ponder部分は除く
-			systemOutputThread.getCommandList().add(bestmoveCommand);
+			// ・ponder部分を除く場合と除かない場合
+			// systemOutputThread.getCommandList().add(bestmoveCommand);
+			systemOutputThread.getCommandList().add(resultEngine.getBestmoveCommand());
 		}
 
 		// GUIに返し終わるまで待つ
@@ -344,8 +465,9 @@ public class UsiLogic2 extends UsiLogicCommon {
 			String bf_bestmove1 = engine1.get_before_exchange_Bestmove();
 			String bf_bestmove2 = engine2.get_before_exchange_Bestmove();
 
-			// 合議結果の最善手
-			String result_bestmove = (engine1 == resultEngine) ? bf_bestmove1 : bf_bestmove2;
+			// 合議結果の最善手、bestmoveコマンド
+			// String result_bestmove = (engine1 == resultEngine) ? bf_bestmove1 : bf_bestmove2;
+			String result_bestmoveCommand = (engine1 == resultEngine) ? engine1.getBefore_exchange_bestmoveCommand() : engine2.getBefore_exchange_bestmoveCommand();
 
 			// 交換前の評価値
 			int bf_score1 = engine1.get_before_exchange_LatestScore();
@@ -373,8 +495,9 @@ public class UsiLogic2 extends UsiLogicCommon {
 			systemOutputThread.getCommandList().add(getBestmoveScoreDisp(bf_bestmove1, hantei1, avg_score1, bf_score1, af_score1));
 
 			// bestmoveをGUIへ返す
-			// ・ponder部分は除く
-			systemOutputThread.getCommandList().add("bestmove " + result_bestmove);
+			// ・ponder部分を除く場合と除かない場合
+			// systemOutputThread.getCommandList().add("bestmove " + result_bestmove);
+			systemOutputThread.getCommandList().add(result_bestmoveCommand);
 		}
 
 		// GUIに返し終わるまで待つ
@@ -411,4 +534,5 @@ public class UsiLogic2 extends UsiLogicCommon {
 
 		return sb.toString();
 	}
+
 }

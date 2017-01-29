@@ -384,4 +384,20 @@ public class ShogiUtils {
 		}
 	}
 
+	/**
+	 * 全エンジンにコマンド送信
+	 * 
+	 * @param usiEngineList
+	 * @param command
+	 */
+	public static void sendCommandToAllEngines(List<UsiEngine> usiEngineList, String command) {
+		// 各エンジンへのコマンドリストに追加
+		for (UsiEngine engine : usiEngineList) {
+			// ・スレッドの排他制御
+			synchronized (engine.getOutputThread()) {
+				engine.getOutputThread().getCommandList().add(command);
+			}
+		}
+	}
+
 }
