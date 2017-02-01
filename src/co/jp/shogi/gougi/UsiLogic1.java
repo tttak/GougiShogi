@@ -504,4 +504,13 @@ public class UsiLogic1 extends UsiLogicCommon {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「usi」の場合）2
+	 * 
+	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List) */
+	@Override
+	protected void enginesToSysoutAtUsi2(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
+		// 何もしない
+	}
+
 }

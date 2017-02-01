@@ -38,6 +38,10 @@ public class StateInfo {
 	/** 最善手の交換前か否か */
 	private boolean before_exchange_flg = true;
 
+	// ----- 合議タイプ「数手ごとに対局者交代」の場合に使用
+	/** 対局者を交代する手数 */
+	private int changePlayerPlys = 1;
+
 	// ---------- Singleton化 START ----------
 
 	private StateInfo() {
@@ -303,6 +307,14 @@ public class StateInfo {
 
 	public void setBefore_exchange_flg(boolean before_exchange_flg) {
 		this.before_exchange_flg = before_exchange_flg;
+	}
+
+	public int getChangePlayerPlys() {
+		return changePlayerPlys;
+	}
+
+	public void setChangePlayerPlys(int changePlayerPlys) {
+		this.changePlayerPlys = changePlayerPlys;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

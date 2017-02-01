@@ -79,6 +79,12 @@ public class SimpleGougiShogiMain {
 				UsiLogic2 usiLogic2 = new UsiLogic2();
 				usiLogic2.execute(usiEngineList, systemInputThread, systemOutputThread);
 			}
+			// 合議タイプが「数手ごとに対局者交代」の場合
+			else if (Constants.GOUGI_TYPE_CHANGE_PLAYER.equals(gougiConfig.getGougiType())) {
+				// USIロジック3を実行
+				UsiLogic3 usiLogic3 = new UsiLogic3();
+				usiLogic3.execute(usiEngineList, systemInputThread, systemOutputThread);
+			}
 			// その他の場合
 			else {
 				// USIロジック1を実行

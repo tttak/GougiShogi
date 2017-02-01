@@ -57,6 +57,7 @@ public class GougiConfig {
 			// 1行ずつ読み込む
 			while ((line = br.readLine()) != null) {
 				logger.info(line);
+				line = line.trim();
 
 				// 合議タイプの設定
 				if (line.startsWith("Gougi.Type=")) {

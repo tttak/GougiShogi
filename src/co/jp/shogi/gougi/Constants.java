@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20170129";
+	public static final String USI_ID_NAME = "SimpleGougiShogi_20170201";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 
@@ -37,6 +37,8 @@ public class Constants {
 	public static final String GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN = "2手前の評価値からの上昇分の悲観合議";
 	/** 【合議タイプ】各々の最善手を交換して評価値の合計で判定（2者） */
 	public static final String GOUGI_TYPE_BESTMOVE_EXCHANGE_2 = "各々の最善手を交換して評価値の合計で判定（2者）";
+	/** 【合議タイプ】数手ごとに対局者交代 */
+	public static final String GOUGI_TYPE_CHANGE_PLAYER = "数手ごとに対局者交代";
 
 	/** 合議タイプのリスト */
 	public static final List<String> GOUGI_TYPE_LIST;
@@ -49,6 +51,7 @@ public class Constants {
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_2TEMAE_JOUSHOU_RAKKAN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_BESTMOVE_EXCHANGE_2);
+		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER);
 	}
 
 	/** 評価値未設定 */

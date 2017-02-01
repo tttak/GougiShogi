@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 /**
  * USI共通ロジック
  */
-public class UsiLogicCommon {
+public abstract class UsiLogicCommon {
 
 	/** Logger */
 	protected static Logger logger = Logger.getLogger(UsiLogicCommon.class.getName());
@@ -83,7 +83,7 @@ public class UsiLogicCommon {
 			// ・スレッドの排他制御
 			synchronized (engine.getOutputThread()) {
 				for (String command : systemInputCommandList2) {
-					// 標準入力（GUI側）からのコマンドを編集（setoption対応、ponder対応）
+					// 標準入力（GUI側）からのコマンドを編集（setoption対応）
 					String cmd = editSysinCommand(command, engine);
 					if (!Utils.isEmpty(cmd)) {
 						engine.getOutputThread().getCommandList().add(cmd);
@@ -172,6 +172,15 @@ public class UsiLogicCommon {
 				// （例）「setoption name OwnBook value true」
 				return "setoption name " + command.substring(prefix.length()).trim();
 			}
+		}
+
+		// 合議タイプ「数手ごとに対局者交代」対応
+		if ("G_ChangePlayerPlys".equals(option)) {
+			// （例）「setoption name G_ChangePlayerPlys value 3」→「3」
+			int changePlayerPlys = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 1);
+			logger.info("changePlayerPlys=" + changePlayerPlys);
+			StateInfo.getInstance().setChangePlayerPlys(changePlayerPlys);
+			return null;
 		}
 
 		// （例）「E2_」で始まるオプションは、エンジン1とエンジン3の場合はnullを返す（エンジン2用のオプションのはずなので）
@@ -296,6 +305,9 @@ public class UsiLogicCommon {
 			systemOutputThread.waitUntilEmpty(10 * 1000);
 		}
 
+		// 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「usi」の場合）2
+		enginesToSysoutAtUsi2(systemOutputThread, usiEngineList);
+
 		// GUIに「usiok」を1回だけ返す
 		// ・スレッドの排他制御
 		synchronized (systemOutputThread) {
@@ -305,6 +317,14 @@ public class UsiLogicCommon {
 		// GUIに返し終わるまで待つ
 		systemOutputThread.waitUntilEmpty(10 * 1000);
 	}
+
+	/**
+	 * 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「usi」の場合）2
+	 * 
+	 * @param systemOutputThread
+	 * @param usiEngineList
+	 */
+	abstract protected void enginesToSysoutAtUsi2(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList);
 
 	/**
 	 * 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「isready」の場合）

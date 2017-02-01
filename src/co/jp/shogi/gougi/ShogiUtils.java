@@ -400,4 +400,21 @@ public class ShogiUtils {
 		}
 	}
 
+	/**
+	 * 当該エンジンについて、エンジンリスト内のインデックスを返す
+	 * 
+	 * @param usiEngineList
+	 * @param engine
+	 * @return
+	 */
+	public static int getEngineListIndex(List<UsiEngine> usiEngineList, UsiEngine engine) {
+		for (int i = 0; i < usiEngineList.size(); i++) {
+			if (usiEngineList.get(i).equals(engine)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 }
