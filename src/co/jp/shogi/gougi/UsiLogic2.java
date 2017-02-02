@@ -197,6 +197,13 @@ public class UsiLogic2 extends UsiLogicCommon {
 				engine.getOutputThread().getCommandList().add("go ponder " + StateInfo.getInstance().getGoTimeOption(0.45));
 			}
 		}
+
+		// 「go ponder」から「ponderhit」までの時間が短すぎるとエンジン側が認識できずにtimeupする場合があるようなので、少し待つ
+		try {
+			Thread.sleep(20);
+		} catch (InterruptedException e) {
+			// ignore
+		}
 	}
 
 	/**

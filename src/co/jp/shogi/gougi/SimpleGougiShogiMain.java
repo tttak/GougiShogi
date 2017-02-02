@@ -79,8 +79,11 @@ public class SimpleGougiShogiMain {
 				UsiLogic2 usiLogic2 = new UsiLogic2();
 				usiLogic2.execute(usiEngineList, systemInputThread, systemOutputThread);
 			}
-			// 合議タイプが「数手ごとに対局者交代」の場合
-			else if (Constants.GOUGI_TYPE_CHANGE_PLAYER.equals(gougiConfig.getGougiType())) {
+			// 合議タイプが以下のいずれかの場合
+			// ・「数手ごとに対局者交代」
+			// ・「2手前の評価値から一定値以上下降したら対局者交代」
+			// ・「2手前の評価値から一定値以上上昇したら対局者交代」
+			else if (Constants.GOUGI_TYPE_CHANGE_PLAYER_PLYS.equals(gougiConfig.getGougiType()) || Constants.GOUGI_TYPE_CHANGE_PLAYER_SCORE_DOWN.equals(gougiConfig.getGougiType()) || Constants.GOUGI_TYPE_CHANGE_PLAYER_SCORE_UP.equals(gougiConfig.getGougiType())) {
 				// USIロジック3を実行
 				UsiLogic3 usiLogic3 = new UsiLogic3();
 				usiLogic3.execute(usiEngineList, systemInputThread, systemOutputThread);

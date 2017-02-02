@@ -116,6 +116,14 @@ public class UsiEngine {
 	}
 
 	/**
+	 * 【前回の値】bestmove、直近の読み筋のクリア
+	 */
+	public void clear_prev_BestmoveLatestPv() {
+		this.prev_bestmoveCommand = null;
+		this.prev_latestPv = null;
+	}
+
+	/**
 	 * 【最善手の交換前の値】bestmove、直近の読み筋のクリア
 	 */
 	public void clear_before_exchange_BestmoveLatestPv() {

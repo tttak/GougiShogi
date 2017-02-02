@@ -183,6 +183,15 @@ public abstract class UsiLogicCommon {
 			return null;
 		}
 
+		// 合議タイプ「2手前の評価値から一定値以上下降したら対局者交代」「2手前の評価値から一定値以上上昇したら対局者交代」対応
+		if ("G_ChangePlayerScoreDiff".equals(option)) {
+			// （例）「setoption name G_ChangePlayerScoreDiff value 200」→「200」
+			int changePlayerScoreDiff = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 100);
+			logger.info("G_ChangePlayerScoreDiff=" + changePlayerScoreDiff);
+			StateInfo.getInstance().setChangePlayerScoreDiff(changePlayerScoreDiff);
+			return null;
+		}
+
 		// （例）「E2_」で始まるオプションは、エンジン1とエンジン3の場合はnullを返す（エンジン2用のオプションのはずなので）
 		return null;
 	}

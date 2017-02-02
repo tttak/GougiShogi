@@ -381,6 +381,13 @@ public class UsiLogic1 extends UsiLogicCommon {
 						engine.setPondering(true);
 						engine.setPonderingPosition(pos);
 					}
+
+					// 「go ponder」から「ponderhit」までの時間が短すぎるとエンジン側が認識できずにtimeupする場合があるようなので、少し待つ
+					try {
+						Thread.sleep(20);
+					} catch (InterruptedException e) {
+						// ignore
+					}
 				}
 			}
 		}

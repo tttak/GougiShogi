@@ -42,6 +42,10 @@ public class StateInfo {
 	/** 対局者を交代する手数 */
 	private int changePlayerPlys = 1;
 
+	// ----- 合議タイプ「2手前の評価値から一定値以上下降したら対局者交代」「2手前の評価値から一定値以上上昇したら対局者交代」の場合に使用
+	/** 対局者を交代する評価値の差分 */
+	private int changePlayerScoreDiff = 100;
+
 	// ---------- Singleton化 START ----------
 
 	private StateInfo() {
@@ -315,6 +319,14 @@ public class StateInfo {
 
 	public void setChangePlayerPlys(int changePlayerPlys) {
 		this.changePlayerPlys = changePlayerPlys;
+	}
+
+	public int getChangePlayerScoreDiff() {
+		return changePlayerScoreDiff;
+	}
+
+	public void setChangePlayerScoreDiff(int changePlayerScoreDiff) {
+		this.changePlayerScoreDiff = changePlayerScoreDiff;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------
