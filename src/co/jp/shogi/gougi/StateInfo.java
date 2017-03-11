@@ -46,6 +46,10 @@ public class StateInfo {
 	/** 対局者を交代する評価値の差分 */
 	private int changePlayerScoreDiff = 100;
 
+	// ----- 合議タイプ「詰探索エンジンとの合議」の場合に使用
+	/** 詰探索エンジンのタイムアウト（ミリ秒） */
+	private int mateTimeout = 10000;
+
 	// ---------- Singleton化 START ----------
 
 	private StateInfo() {
@@ -327,6 +331,14 @@ public class StateInfo {
 
 	public void setChangePlayerScoreDiff(int changePlayerScoreDiff) {
 		this.changePlayerScoreDiff = changePlayerScoreDiff;
+	}
+
+	public int getMateTimeout() {
+		return mateTimeout;
+	}
+
+	public void setMateTimeout(int mateTimeout) {
+		this.mateTimeout = mateTimeout;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

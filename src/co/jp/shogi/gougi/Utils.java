@@ -8,11 +8,15 @@ import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * ユーティリティクラス
  */
 public class Utils {
+
+	/** Logger */
+	protected static Logger logger = Logger.getLogger(Utils.class.getName());
 
 	/**
 	 * loggerの初期化
@@ -44,6 +48,7 @@ public class Utils {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			logger.warning(e.getMessage());
 		}
 	}
 
@@ -59,6 +64,7 @@ public class Utils {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			logger.warning(e.getMessage());
 		}
 	}
 
@@ -74,6 +80,7 @@ public class Utils {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			logger.warning(e.getMessage());
 		}
 	}
 
@@ -89,6 +96,7 @@ public class Utils {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.warning(e.getMessage());
 		}
 	}
 
@@ -174,6 +182,21 @@ public class Utils {
 	 */
 	public static boolean isEmpty(String str) {
 		return str == null || str.isEmpty();
+	}
+
+	/**
+	 * オブジェクトが等しいか否かを返す。ただし、両者nullなら等しいとみなす。
+	 * 
+	 * @param o1
+	 * @param o2
+	 * @return
+	 */
+	public static boolean equals(Object o1, Object o2) {
+		if (o1 == null || o2 == null) {
+			return (o1 == null && o2 == null);
+		} else {
+			return o1.equals(o2);
+		}
 	}
 
 	/**

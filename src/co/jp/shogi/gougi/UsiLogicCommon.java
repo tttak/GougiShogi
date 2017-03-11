@@ -192,6 +192,15 @@ public abstract class UsiLogicCommon {
 			return null;
 		}
 
+		// 合議タイプ「詰探索エンジンとの合議」対応
+		if ("G_MateTimeout".equals(option)) {
+			// （例）「setoption name G_MateTimeout value 30000」→「30000」
+			int mateTimeout = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 10000);
+			logger.info("mateTimeout=" + mateTimeout);
+			StateInfo.getInstance().setMateTimeout(mateTimeout);
+			return null;
+		}
+
 		// （例）「E2_」で始まるオプションは、エンジン1とエンジン3の場合はnullを返す（エンジン2用のオプションのはずなので）
 		return null;
 	}
@@ -301,6 +310,8 @@ public abstract class UsiLogicCommon {
 
 					// エンジンのオプションセットに追加
 					engine.getOptionSet().add(ShogiUtils.getOptionName(command));
+					// エンジンの「USIオプションの送信済みコマンドリスト」に追加
+					engine.getOptionCommandList().add(cmd);
 				}
 			}
 

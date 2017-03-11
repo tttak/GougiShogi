@@ -1,13 +1,20 @@
 package co.jp.shogi.gougi;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * USIエンジンクラス
  */
 public class UsiEngine {
+
+	/** Logger */
+	protected static Logger logger = Logger.getLogger(UsiEngine.class.getName());
 
 	/** 実行ファイル （例）「C:/将棋/Gikou/gikou.exe」 */
 	private File exeFile;
@@ -25,6 +32,8 @@ public class UsiEngine {
 
 	/** USIオプションのSet */
 	private Set<String> optionSet = new HashSet<String>();
+	/** USIオプションの送信済みコマンドリスト */
+	private List<String> optionCommandList = new ArrayList<String>();
 
 	/** bestmoveコマンド （例）「bestmove 3i4h ponder 3c8h+」 */
 	private String bestmoveCommand;
@@ -52,6 +61,42 @@ public class UsiEngine {
 
 	/** 事前ponder実施中か否か */
 	private boolean prePondering = false;
+
+	/**
+	 * プロセスの作成（起動）
+	 * @throws IOException
+	 */
+	public void createProcess() throws IOException {
+		// デバッグ用
+		logger.info("-----");
+		logger.info(String.valueOf(this.getEngineNumber()));
+		logger.info(String.valueOf(this.getExeFile()));
+		logger.info(this.getUsiName());
+		logger.info("-----");
+
+		// ProcessBuilderを作成
+		String[] cmds = { this.getExeFile().getAbsolutePath() };
+		ProcessBuilder pb = new ProcessBuilder(cmds);
+		// exeファイルのフォルダを作業ディレクトリとして指定
+		pb.directory(this.getExeFile().getParentFile());
+		pb.redirectErrorStream(true);
+
+		// エンジンのプロセスを起動
+		Process process = pb.start();
+		this.setProcess(process);
+
+		// エンジンからの入力用スレッド作成
+		InputStreamThread processInputThread = new InputStreamThread(process.getInputStream(), this.getEngineDisp());
+		processInputThread.setDaemon(true);
+		processInputThread.start();
+		this.setInputThread(processInputThread);
+
+		// エンジンへの出力用スレッド作成
+		OutputStreamThread processOutputThread = new OutputStreamThread(process.getOutputStream(), this.getEngineDisp());
+		processOutputThread.setDaemon(true);
+		processOutputThread.start();
+		this.setOutputThread(processOutputThread);
+	}
 
 	/**
 	 * プロセスの終了
@@ -516,6 +561,14 @@ public class UsiEngine {
 
 	public void setBefore_exchange_latestPv(String before_exchange_latestPv) {
 		this.before_exchange_latestPv = before_exchange_latestPv;
+	}
+
+	public List<String> getOptionCommandList() {
+		return optionCommandList;
+	}
+
+	public void setOptionCommandList(List<String> optionCommandList) {
+		this.optionCommandList = optionCommandList;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

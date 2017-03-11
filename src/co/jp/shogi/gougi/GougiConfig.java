@@ -20,6 +20,8 @@ public class GougiConfig {
 	private String gougiType;
 	/** USIエンジンリスト */
 	private List<UsiEngine> usiEngineList;
+	/** 詰探索エンジン */
+	private MateEngine mateEngine;
 
 	// ---------- Singleton化 START ----------
 
@@ -48,6 +50,7 @@ public class GougiConfig {
 		// 初期化
 		gougiType = null;
 		usiEngineList = null;
+		mateEngine = null;
 
 		try {
 			br = new BufferedReader(new FileReader(new File(getConfigFilePath())));
@@ -82,6 +85,18 @@ public class GougiConfig {
 						}
 					}
 				}
+
+				// 詰探索エンジンの設定
+				String str = "MateEngine.Path=";
+				if (line.startsWith(str)) {
+					// 詰探索エンジンの設定が複数行存在する場合、先勝ちとする
+					if (mateEngine == null) {
+						mateEngine = new MateEngine();
+						mateEngine.setEngineNumber(0);
+						mateEngine.setExeFile(new File(line.substring(str.length()).trim()));
+					}
+				}
+
 			}
 
 			// ソート結果をUSIエンジンリストにセット
@@ -136,6 +151,20 @@ public class GougiConfig {
 			}
 		}
 
+		// 合議タイプが「詰探索エンジンとの合議」の場合
+		if (Constants.GOUGI_TYPE_MATE.equals(gougiType)) {
+			// エンジンが1個ではない場合
+			if (usiEngineList.size() != Constants.ENGINE_COUNT_MATE) {
+				// チェックNG
+				return "合議タイプが「詰探索エンジンとの合議」の場合、エンジン（通常）は1種類設定してください。";
+			}
+			// 詰探索エンジンが未設定の場合
+			if (mateEngine == null) {
+				// チェックNG
+				return "合議タイプが「詰探索エンジンとの合議」の場合、詰探索エンジンを設定してください。";
+			}
+		}
+
 		// チェックOK
 		return null;
 	}
@@ -186,6 +215,10 @@ public class GougiConfig {
 
 	public void setGougiType(String gougiType) {
 		this.gougiType = gougiType;
+	}
+
+	public MateEngine getMateEngine() {
+		return mateEngine;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

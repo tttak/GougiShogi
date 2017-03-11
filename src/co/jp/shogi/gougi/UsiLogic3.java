@@ -310,7 +310,7 @@ public class UsiLogic3 extends UsiLogicCommon {
 	 * 標準入力（GUI側）からのコマンドを当該エンジンへのコマンドリストに追加する（「go」または「go ponder」の場合）
 	 * 
 	 * @param goCommand
-	 * @param usiEngineList
+	 * @param engine
 	 */
 	protected void sysinToEnginesAtGoOrGoPonder(String goCommand, UsiEngine engine) {
 		// 直近の「position」コマンドの局面を取得

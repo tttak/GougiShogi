@@ -31,6 +31,7 @@ public class SimpleGougiShogiMain {
 			logger.info("main() END!!");
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			logger.warning(ex.getMessage());
 		}
 	}
 
@@ -88,6 +89,12 @@ public class SimpleGougiShogiMain {
 				UsiLogic3 usiLogic3 = new UsiLogic3();
 				usiLogic3.execute(usiEngineList, systemInputThread, systemOutputThread);
 			}
+			// 合議タイプが「詰探索エンジンとの合議」の場合
+			else if (Constants.GOUGI_TYPE_MATE.equals(gougiConfig.getGougiType())) {
+				// USIロジック4を実行
+				UsiLogic4 usiLogic4 = new UsiLogic4();
+				usiLogic4.execute(usiEngineList, systemInputThread, systemOutputThread);
+			}
 			// その他の場合
 			else {
 				// USIロジック1を実行
@@ -98,10 +105,17 @@ public class SimpleGougiShogiMain {
 		} finally {
 			Thread.sleep(500);
 
+			// USIエンジンリスト
 			if (usiEngineList != null) {
 				for (UsiEngine engine : usiEngineList) {
 					engine.destroy();
 				}
+			}
+
+			// 詰探索エンジン
+			MateEngine mateEngine = GougiConfig.getInstance().getMateEngine();
+			if (mateEngine != null) {
+				mateEngine.destroy();
 			}
 		}
 	}
@@ -115,35 +129,8 @@ public class SimpleGougiShogiMain {
 	private void startEngineProcess(List<UsiEngine> usiEngineList) throws IOException {
 		// 各エンジンをループ
 		for (UsiEngine engine : usiEngineList) {
-			// デバッグ用
-			logger.info("-----");
-			logger.info(String.valueOf(engine.getEngineNumber()));
-			logger.info(String.valueOf(engine.getExeFile()));
-			logger.info(engine.getUsiName());
-			logger.info("-----");
-
-			// ProcessBuilderを作成
-			String[] cmds = { engine.getExeFile().getAbsolutePath() };
-			ProcessBuilder pb = new ProcessBuilder(cmds);
-			// exeファイルのフォルダを作業ディレクトリとして指定
-			pb.directory(engine.getExeFile().getParentFile());
-			pb.redirectErrorStream(true);
-
-			// エンジンのプロセスを起動
-			Process process = pb.start();
-			engine.setProcess(process);
-
-			// エンジンからの入力用スレッド作成
-			InputStreamThread processInputThread = new InputStreamThread(process.getInputStream(), engine.getEngineDisp());
-			processInputThread.setDaemon(true);
-			processInputThread.start();
-			engine.setInputThread(processInputThread);
-
-			// エンジンへの出力用スレッド作成
-			OutputStreamThread processOutputThread = new OutputStreamThread(process.getOutputStream(), engine.getEngineDisp());
-			processOutputThread.setDaemon(true);
-			processOutputThread.start();
-			engine.setOutputThread(processOutputThread);
+			// プロセスの作成（起動）
+			engine.createProcess();
 		}
 	}
 
