@@ -57,7 +57,7 @@ public class UsiLogic4 extends UsiLogicCommon {
 					// 標準入力（GUI側）からのコマンドを現在のエンジンへのコマンドリストに追加する（「go」または「go ponder」の場合）
 					sysinToEnginesAtGoOrGoPonder(command, currentEngine);
 					// 標準入力（GUI側）からのコマンドを詰探索エンジンへのコマンドリストに追加する（「go」または「go ponder」の場合）
-					sysinToMateEngineAtGoOrGoPonder(command, mateEngine);
+					sysinToMateEngineAtGoOrGoPonder(mateEngine);
 					logger.info("「go」または「go ponder」の場合 END");
 				}
 
@@ -212,12 +212,12 @@ public class UsiLogic4 extends UsiLogicCommon {
 
 	/**
 	 * 標準入力（GUI側）からのコマンドを詰探索エンジンへのコマンドリストに追加する（「go」または「go ponder」の場合）
+	 * ・現局面（直近の「position」コマンドの局面）で「go mate」コマンドを送信する。
 	 * 
-	 * @param goCommand
 	 * @param mateEngine
 	 * @throws IOException
 	 */
-	protected void sysinToMateEngineAtGoOrGoPonder(String goCommand, MateEngine mateEngine) throws IOException {
+	protected void sysinToMateEngineAtGoOrGoPonder(MateEngine mateEngine) throws IOException {
 		// まだ前局面を探索中の場合、何もしない
 		if (mateEngine.isSearching()) {
 			return;
@@ -295,8 +295,9 @@ public class UsiLogic4 extends UsiLogicCommon {
 	 * 
 	 * @param systemOutputThread
 	 * @param mateEngine
+	 * @throws IOException
 	 */
-	private void mateEnginesToSysout(OutputStreamThread systemOutputThread, MateEngine mateEngine) {
+	private void mateEnginesToSysout(OutputStreamThread systemOutputThread, MateEngine mateEngine) throws IOException {
 		InputStreamThread processInputThread = mateEngine.getInputThread();
 		List<String> processInputCommandList = null;
 
@@ -322,22 +323,29 @@ public class UsiLogic4 extends UsiLogicCommon {
 					if (command.startsWith("checkmate")) {
 						// 探索中フラグを落とす
 						mateEngine.setSearching(false);
-					}
 
-					// （例）「checkmate R*6a 5a6a 2a4a 6a6b 8b7a」の場合
-					// ・「checkmate nomate」「checkmate timeout」「checkmateのみ」「checkmate notimplemented」の場合は除く
-					if (command.startsWith("checkmate ") && !("checkmate nomate".equals(command) || "checkmate timeout".equals(command) || "checkmate".equals(command) || "checkmate notimplemented".equals(command))) {
 						logger.info("Utils.equals(mateEngine.getLatestGoMatePosition(), StateInfo.getInstance().getLatestPosition())=" + Utils.equals(mateEngine.getLatestGoMatePosition(), StateInfo.getInstance().getLatestPosition()));
 
 						// 直近の「go mate」コマンドの局面と直近の「position」コマンドの局面が一致する場合
 						// ・実際の局面は次の指し手に移っても、詰探索エンジンは前の局面を思考し続けている場合があるので。
 						if (Utils.equals(mateEngine.getLatestGoMatePosition(), StateInfo.getInstance().getLatestPosition())) {
-							// checkmateの指し手をセット
-							mateEngine.setCheckmateMoves(command.substring("checkmate ".length()));
+							// （例）「checkmate R*6a 5a6a 2a4a 6a6b 8b7a」の場合
+							// ・「checkmate nomate」「checkmate timeout」「checkmateのみ」「checkmate notimplemented」の場合は除く
+							if (command.startsWith("checkmate ") && !("checkmate nomate".equals(command) || "checkmate timeout".equals(command) || "checkmate".equals(command) || "checkmate notimplemented".equals(command))) {
+								// checkmateの指し手をセット
+								mateEngine.setCheckmateMoves(command.substring("checkmate ".length()));
 
-							// 詰探索エンジンの読み筋（評価値を含む）を作成して出力する
-							// （例）「info score mate 5 pv R*6a 5a6a 2a4a 6a6b 8b7a」
-							systemOutputThread.getCommandList().add(mateEngine.createPv());
+								// 詰探索エンジンの読み筋（評価値を含む）を作成して出力する
+								// （例）「info score mate 5 pv R*6a 5a6a 2a4a 6a6b 8b7a」
+								systemOutputThread.getCommandList().add(mateEngine.createPv());
+							}
+						}
+
+						// その他の場合（直近の「go mate」コマンドの局面と直近の「position」コマンドの局面が異なる場合）
+						// ・実際の局面は次の指し手に移っても、詰探索エンジンは前の局面を思考し続けていた場合
+						else {
+							// 現局面（直近の「position」コマンドの局面）で「go mate」コマンドを送信
+							sysinToMateEngineAtGoOrGoPonder(mateEngine);
 						}
 					}
 				}
