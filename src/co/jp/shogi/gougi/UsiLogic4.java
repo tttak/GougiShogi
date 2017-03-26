@@ -106,6 +106,8 @@ public class UsiLogic4 extends UsiLogicCommon {
 				logger.info("「isready」の場合 START");
 				// クリア処理
 				StateInfo.getInstance().clear();
+				// 詰探索エンジンの探索中フラグにfalseをセット
+				mateEngine.setSearching(false);
 				// 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「isready」の場合）
 				enginesToSysoutAtIsReady(systemOutputThread, usiEngineList);
 				logger.info("「isready」の場合 END");
@@ -344,8 +346,11 @@ public class UsiLogic4 extends UsiLogicCommon {
 						// その他の場合（直近の「go mate」コマンドの局面と直近の「position」コマンドの局面が異なる場合）
 						// ・実際の局面は次の指し手に移っても、詰探索エンジンは前の局面を思考し続けていた場合
 						else {
-							// 現局面（直近の「position」コマンドの局面）で「go mate」コマンドを送信
-							sysinToMateEngineAtGoOrGoPonder(mateEngine);
+							// 対局中の場合
+							if (StateInfo.getInstance().isDuringGame()) {
+								// 現局面（直近の「position」コマンドの局面）で「go mate」コマンドを送信
+								sysinToMateEngineAtGoOrGoPonder(mateEngine);
+							}
 						}
 					}
 				}
