@@ -95,6 +95,12 @@ public class SimpleGougiShogiMain {
 				UsiLogic4 usiLogic4 = new UsiLogic4();
 				usiLogic4.execute(usiEngineList, systemInputThread, systemOutputThread);
 			}
+			// 合議タイプが「詰探索エンジンとの合議（「脊尾詰」対応版）」の場合
+			else if (Constants.GOUGI_TYPE_MATE_SEOTSUME.equals(gougiConfig.getGougiType())) {
+				// USIロジック5を実行
+				UsiLogic5 usiLogic5 = new UsiLogic5();
+				usiLogic5.execute(usiEngineList, systemInputThread, systemOutputThread);
+			}
 			// その他の場合
 			else {
 				// USIロジック1を実行

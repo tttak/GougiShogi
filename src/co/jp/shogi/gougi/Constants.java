@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20170326";
+	public static final String USI_ID_NAME = "SimpleGougiShogi_20170409";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 
@@ -47,6 +47,8 @@ public class Constants {
 	public static final String GOUGI_TYPE_CHANGE_PLAYER_SCORE_UP = "2手前の評価値から一定値以上上昇したら対局者交代";
 	/** 【合議タイプ】詰探索エンジンとの合議 */
 	public static final String GOUGI_TYPE_MATE = "詰探索エンジンとの合議";
+	/** 【合議タイプ】詰探索エンジンとの合議（「脊尾詰」対応版） */
+	public static final String GOUGI_TYPE_MATE_SEOTSUME = "詰探索エンジンとの合議（「脊尾詰」対応版）";
 
 	/** 合議タイプのリスト */
 	public static final List<String> GOUGI_TYPE_LIST;
@@ -63,11 +65,15 @@ public class Constants {
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER_SCORE_DOWN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER_SCORE_UP);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_MATE);
+		GOUGI_TYPE_LIST.add(GOUGI_TYPE_MATE_SEOTSUME);
 	}
 
 	/** 評価値未設定 */
 	public static final int SCORE_NONE = Integer.MIN_VALUE + 1;
 	/** Mateの評価値 */
 	public static final int SCORE_MATE = 100000;
+
+	/** sfen変換用やねうら王 */
+	public static final String SFEN_YANEURAOU_FILENAME = "YaneuraOu_sfen変換用.exe";
 
 }
