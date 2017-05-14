@@ -101,6 +101,12 @@ public class SimpleGougiShogiMain {
 				UsiLogic5 usiLogic5 = new UsiLogic5();
 				usiLogic5.execute(usiEngineList, systemInputThread, systemOutputThread);
 			}
+			// 合議タイプが「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合
+			else if (Constants.GOUGI_TYPE_MATE_PV.equals(gougiConfig.getGougiType())) {
+				// USIロジック6を実行
+				UsiLogic6 usiLogic6 = new UsiLogic6();
+				usiLogic6.execute(usiEngineList, systemInputThread, systemOutputThread);
+			}
 			// その他の場合
 			else {
 				// USIロジック1を実行

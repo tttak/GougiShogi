@@ -23,6 +23,9 @@ public class GougiConfig {
 	/** 詰探索エンジン */
 	private MateEngine mateEngine;
 
+	/** 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合に、読み筋局面を探索する詰探索エンジンの数 */
+	private int pvMateEngineCount = Constants.PV_MATE_ENGINE_CNT_DEFAULT;
+
 	// ---------- Singleton化 START ----------
 
 	private GougiConfig() {
@@ -97,6 +100,11 @@ public class GougiConfig {
 					}
 				}
 
+				// 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合に、読み筋局面を探索する詰探索エンジンの数
+				str = "MateEngine.forPV.Count=";
+				if (line.startsWith(str)) {
+					pvMateEngineCount = Utils.getIntValue(line.substring(str.length()).trim(), Constants.PV_MATE_ENGINE_CNT_DEFAULT);
+				}
 			}
 
 			// ソート結果をUSIエンジンリストにセット
@@ -219,6 +227,14 @@ public class GougiConfig {
 
 	public MateEngine getMateEngine() {
 		return mateEngine;
+	}
+
+	public int getPvMateEngineCount() {
+		return pvMateEngineCount;
+	}
+
+	public void setPvMateEngineCount(int pvMateEngineCount) {
+		this.pvMateEngineCount = pvMateEngineCount;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

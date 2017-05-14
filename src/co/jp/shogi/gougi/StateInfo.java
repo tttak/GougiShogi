@@ -50,6 +50,10 @@ public class StateInfo {
 	/** 詰探索エンジンのタイムアウト（ミリ秒） */
 	private int mateTimeout = 10000;
 
+	// ----- 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合に使用
+	/** 読み筋局面用の詰探索エンジンのタイムアウト（ミリ秒） */
+	private int pvMateTimeout = 5000;
+
 	// ---------- Singleton化 START ----------
 
 	private StateInfo() {
@@ -339,6 +343,14 @@ public class StateInfo {
 
 	public void setMateTimeout(int mateTimeout) {
 		this.mateTimeout = mateTimeout;
+	}
+
+	public int getPvMateTimeout() {
+		return pvMateTimeout;
+	}
+
+	public void setPvMateTimeout(int pvMateTimeout) {
+		this.pvMateTimeout = pvMateTimeout;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20170409";
+	public static final String USI_ID_NAME = "SimpleGougiShogi_20170514";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 
@@ -49,6 +49,8 @@ public class Constants {
 	public static final String GOUGI_TYPE_MATE = "詰探索エンジンとの合議";
 	/** 【合議タイプ】詰探索エンジンとの合議（「脊尾詰」対応版） */
 	public static final String GOUGI_TYPE_MATE_SEOTSUME = "詰探索エンジンとの合議（「脊尾詰」対応版）";
+	/** 【合議タイプ】詰探索エンジンとの合議（読み筋の局面も詰探索） */
+	public static final String GOUGI_TYPE_MATE_PV = "詰探索エンジンとの合議（読み筋の局面も詰探索）";
 
 	/** 合議タイプのリスト */
 	public static final List<String> GOUGI_TYPE_LIST;
@@ -66,6 +68,7 @@ public class Constants {
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER_SCORE_UP);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_MATE);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_MATE_SEOTSUME);
+		GOUGI_TYPE_LIST.add(GOUGI_TYPE_MATE_PV);
 	}
 
 	/** 評価値未設定 */
@@ -75,5 +78,8 @@ public class Constants {
 
 	/** sfen変換用やねうら王 */
 	public static final String SFEN_YANEURAOU_FILENAME = "YaneuraOu_sfen変換用.exe";
+
+	/** 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合に、読み筋局面を探索する詰探索エンジンの数のデフォルト値 */
+	public static final int PV_MATE_ENGINE_CNT_DEFAULT = 3;
 
 }

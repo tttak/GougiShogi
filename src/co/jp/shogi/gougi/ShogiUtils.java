@@ -32,6 +32,17 @@ public class ShogiUtils {
 	}
 
 	/**
+	 * 全エンジンの読み筋リストをクリアする
+	 * 
+	 * @param usiEngineList
+	 */
+	public static void clearPvList(List<UsiEngine> usiEngineList) {
+		for (UsiEngine engine : usiEngineList) {
+			engine.clearPvList();
+		}
+	}
+
+	/**
 	 * bestmoveコマンドが空のエンジンが存在するか否かを返す
 	 * 
 	 * @param usiEngineList
@@ -415,6 +426,20 @@ public class ShogiUtils {
 		}
 
 		return -1;
+	}
+
+	/**
+	 * 探索中ではない詰探索エンジンを返す
+	 * @param mateEngineList
+	 * @return
+	 */
+	public static MateEngine getMateEngineNotSearching(List<MateEngine> mateEngineList) {
+		for (MateEngine mateEngine : mateEngineList) {
+			if (!mateEngine.isSearching()) {
+				return mateEngine;
+			}
+		}
+		return null;
 	}
 
 }

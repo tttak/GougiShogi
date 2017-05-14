@@ -14,6 +14,9 @@ public class MateEngine extends UsiEngine {
 	/** 直近の「go mate」コマンドの局面 */
 	private String latestGoMatePosition;
 
+	/** 直近の「go mate」コマンドの局面（sfen） */
+	private String latestGoMatePositionSfen;
+
 	/** 探索中か否か */
 	private boolean searching;
 
@@ -126,6 +129,14 @@ public class MateEngine extends UsiEngine {
 
 	public void setSearching(boolean searching) {
 		this.searching = searching;
+	}
+
+	public String getLatestGoMatePositionSfen() {
+		return latestGoMatePositionSfen;
+	}
+
+	public void setLatestGoMatePositionSfen(String latestGoMatePositionSfen) {
+		this.latestGoMatePositionSfen = latestGoMatePositionSfen;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

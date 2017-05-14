@@ -43,6 +43,8 @@ public abstract class UsiLogicCommon {
 				if (command.startsWith("position ")) {
 					StateInfo.getInstance().setLatestPosition(command);
 					logger.info("StateInfo.getInstance().isSente()=" + StateInfo.getInstance().isSente());
+					// 全エンジンの読み筋リストをクリア
+					ShogiUtils.clearPvList(usiEngineList);
 					continue;
 				}
 
@@ -198,6 +200,15 @@ public abstract class UsiLogicCommon {
 			int mateTimeout = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 10000);
 			logger.info("mateTimeout=" + mateTimeout);
 			StateInfo.getInstance().setMateTimeout(mateTimeout);
+			return null;
+		}
+
+		// 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索） 」対応
+		if ("G_PvMateTimeout".equals(option)) {
+			// （例）「setoption name G_PvMateTimeout value 30000」→「30000」
+			int pvMateTimeout = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 5000);
+			logger.info("PvMateTimeout=" + pvMateTimeout);
+			StateInfo.getInstance().setPvMateTimeout(pvMateTimeout);
 			return null;
 		}
 

@@ -62,6 +62,13 @@ public class UsiEngine {
 	/** 事前ponder実施中か否か */
 	private boolean prePondering = false;
 
+	// ----- 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合に使用
+
+	/** 読み筋リスト */
+	private List<String> pvList = new ArrayList<String>();
+
+	// -----
+
 	/**
 	 * プロセスの作成（起動）
 	 * @throws IOException
@@ -174,6 +181,13 @@ public class UsiEngine {
 	public void clear_before_exchange_BestmoveLatestPv() {
 		this.before_exchange_bestmoveCommand = null;
 		this.before_exchange_latestPv = null;
+	}
+
+	/**
+	 * 読み筋リストのクリア
+	 */
+	public void clearPvList() {
+		this.pvList = new ArrayList<String>();
 	}
 
 	/**
@@ -569,6 +583,14 @@ public class UsiEngine {
 
 	public void setOptionCommandList(List<String> optionCommandList) {
 		this.optionCommandList = optionCommandList;
+	}
+
+	public List<String> getPvList() {
+		return pvList;
+	}
+
+	public void setPvList(List<String> pvList) {
+		this.pvList = pvList;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------
