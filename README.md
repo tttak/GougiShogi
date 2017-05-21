@@ -14,7 +14,7 @@
 	- SimpleGougiShogi.bat
 	- SimpleGougiShogi.jar
 	- SimpleGougiShogi.config
-	- YaneuraOu_sfen変換用.exe （合議タイプ「詰探索エンジンとの合議（「脊尾詰」対応版）」の場合にのみ使用します）
+	- YaneuraOu_sfen変換用.exe （合議タイプ「詰探索エンジンとの合議（「脊尾詰」対応版）」及び「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合にのみ使用します）
 
 2. 「SimpleGougiShogi.config」で合議タイプと将棋ソフト（USIエンジン）を設定します。  
 	設定例
