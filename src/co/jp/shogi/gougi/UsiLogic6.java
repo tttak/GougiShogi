@@ -143,6 +143,15 @@ public class UsiLogic6 extends UsiLogicCommon {
 				StateInfo.getInstance().setDuringGame(true);
 				searchedPvPosSet = new HashSet<String>();
 				searchedPvSfenSet = new HashSet<String>();
+				// 全エンジンの読み筋リストをクリア
+				ShogiUtils.clearPvList(usiEngineList);
+
+				// 詰探索エンジンの探索中フラグを落とす
+				mateEngine.setSearching(false);
+				for (MateEngine pvMateEngine : pvMateEngineList) {
+					pvMateEngine.setSearching(false);
+				}
+
 				logger.info("「usinewgame」の場合 END");
 			}
 
@@ -150,6 +159,8 @@ public class UsiLogic6 extends UsiLogicCommon {
 			if (Utils.containsStartsWith(systemInputCommandList, "gameover")) {
 				logger.info("「gameover」の場合 START");
 				StateInfo.getInstance().setDuringGame(false);
+				// 全エンジンの読み筋リストをクリア
+				ShogiUtils.clearPvList(usiEngineList);
 				logger.info("「gameover」の場合 END");
 			}
 
@@ -172,15 +183,15 @@ public class UsiLogic6 extends UsiLogicCommon {
 			enginesToSysoutAtNormal(systemOutputThread, currentEngine);
 
 			// 対局中の場合
-			if (StateInfo.getInstance().isDuringGame()) {
-				// 実行回数を適当に減らしておく
-				if (Math.random() < 0.1) {
-					// 読み筋局面用の詰探索処理（詰探索エンジンへ）
-					pvMateToMateEngine(currentEngine, pvMateEngineList, sfenYaneuraOu, searchedPvPosSet, searchedPvSfenSet);
-					// 読み筋局面用の詰探索処理（詰探索エンジンより）
-					pvMateFromMateEngine(currentEngine, pvMateEngineList, systemOutputThread);
-				}
+			// if (StateInfo.getInstance().isDuringGame()) {
+			// 実行回数を適当に減らしておく
+			if (Math.random() < 0.1) {
+				// 読み筋局面用の詰探索処理（詰探索エンジンへ）
+				pvMateToMateEngine(currentEngine, pvMateEngineList, sfenYaneuraOu, searchedPvPosSet, searchedPvSfenSet);
+				// 読み筋局面用の詰探索処理（詰探索エンジンより）
+				pvMateFromMateEngine(currentEngine, pvMateEngineList, systemOutputThread);
 			}
+			// }
 
 			// sleep
 			Thread.sleep(10);
@@ -388,8 +399,16 @@ public class UsiLogic6 extends UsiLogicCommon {
 
 						// 「info～pv～」の場合、読み筋をエンジンに保存
 						if (command.startsWith("info ") && command.indexOf(" pv ") >= 0) {
+							// （例）「info depth 3 seldepth 4 multipv 1 score cp 502 nodes 774 nps 154800 time 5 pv 2g3g 4h3g 2c3d S*3f」
+							// → 「2g3g 4h3g 2c3d S*3f」
 							String pv = command.substring(command.indexOf(" pv ") + " pv ".length()).trim();
-							engine.getPvList().add(pv);
+
+							// ただし、定跡の指し手などで下例のようなコマンドが送られてきた場合は除外する。
+							// （例）「info pv 7g7f 8c8d (38.62%) score cp 0 depth 32 multipv 1」
+							// ・「 pv 」より右の文字列に読み筋以外が含まれており、これをそのままsfen変換用やねうら王へ渡すと結果が保証されないため。
+							if (pv.indexOf("(") < 0) {
+								engine.getPvList().add(pv);
+							}
 						}
 					}
 				}
