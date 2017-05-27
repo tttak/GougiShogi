@@ -18,6 +18,11 @@ public class UsiLogic6 extends UsiLogicCommon {
 	/** Logger */
 	protected static Logger logger = Logger.getLogger(UsiLogic6.class.getName());
 
+	// 読み筋局面用の詰探索のカウンター
+	private int g_cnt_pvMate_tried = 0;
+	private int g_cnt_pvMate_success = 0;
+	private int g_cnt_pvMate_last_displayed = 0;
+
 	/**
 	 * executeメソッド
 	 * 
@@ -152,6 +157,11 @@ public class UsiLogic6 extends UsiLogicCommon {
 					pvMateEngine.setSearching(false);
 				}
 
+				// 読み筋局面用の詰探索のカウンターのクリア
+				g_cnt_pvMate_tried = 0;
+				g_cnt_pvMate_success = 0;
+				g_cnt_pvMate_last_displayed = 0;
+
 				logger.info("「usinewgame」の場合 END");
 			}
 
@@ -192,6 +202,14 @@ public class UsiLogic6 extends UsiLogicCommon {
 				pvMateFromMateEngine(currentEngine, pvMateEngineList, systemOutputThread);
 			}
 			// }
+
+			// 読み筋局面用の詰探索のカウンターを標準出力（GUI側）へのコマンドリストに追加する
+			if (g_cnt_pvMate_tried % 50 == 0 && g_cnt_pvMate_tried > 0 && g_cnt_pvMate_tried != g_cnt_pvMate_last_displayed) {
+				synchronized (systemOutputThread) {
+					systemOutputThread.getCommandList().add("info string pvMateTriedCount=" + g_cnt_pvMate_tried + ", pvMateSuccessCount=" + g_cnt_pvMate_success);
+				}
+				g_cnt_pvMate_last_displayed = g_cnt_pvMate_tried;
+			}
 
 			// sleep
 			Thread.sleep(10);
@@ -502,6 +520,10 @@ public class UsiLogic6 extends UsiLogicCommon {
 			// 合議結果を標準出力（GUI側）へのコマンドリストに追加
 			// ・スレッドの排他制御
 			synchronized (systemOutputThread) {
+				// 読み筋局面用の詰探索のカウンターを標準出力（GUI側）へのコマンドリストに追加する
+				systemOutputThread.getCommandList().add("info string pvMateTriedCount=" + g_cnt_pvMate_tried + ", pvMateSuccessCount=" + g_cnt_pvMate_success);
+				g_cnt_pvMate_last_displayed = g_cnt_pvMate_tried;
+
 				// 詰探索エンジンが詰みを発見していない場合
 				// ・通常の探索エンジンの指し手を採用する
 				if (Utils.isEmpty(mateEngine.getCheckmateMoves())) {
@@ -679,6 +701,8 @@ public class UsiLogic6 extends UsiLogicCommon {
 
 						// 探索中フラグをセット
 						pvMateEngine.setSearching(true);
+						// 読み筋局面用の詰探索のカウンター
+						g_cnt_pvMate_tried++;
 					}
 				}
 			}
@@ -707,45 +731,43 @@ public class UsiLogic6 extends UsiLogicCommon {
 
 			// コマンドが存在する場合
 			if (processInputCommandList != null) {
-				// 標準出力（GUI側）へのコマンドリストに追加
-				// ・スレッドの排他制御
-				synchronized (systemOutputThread) {
-					for (String command : processInputCommandList) {
+				for (String command : processInputCommandList) {
+					// コマンドが「checkmate」で始まる場合
+					if (command.startsWith("checkmate")) {
+						// 探索中フラグを落とす
+						pvMateEngine.setSearching(false);
 
-						// コマンドが「checkmate」で始まる場合
-						if (command.startsWith("checkmate")) {
-							// 探索中フラグを落とす
-							pvMateEngine.setSearching(false);
-
-							// （例）「checkmate R*6a 5a6a 2a4a 6a6b 8b7a」の場合
-							// ・「checkmate nomate」「checkmate timeout」「checkmateのみ」「checkmate notimplemented」の場合は除く
-							if (command.startsWith("checkmate ") && !("checkmate nomate".equals(command) || "checkmate timeout".equals(command) || "checkmate".equals(command) || "checkmate notimplemented".equals(command))) {
+						// （例）「checkmate R*6a 5a6a 2a4a 6a6b 8b7a」の場合
+						// ・「checkmate nomate」「checkmate timeout」「checkmateのみ」「checkmate notimplemented」の場合は除く
+						if (command.startsWith("checkmate ") && !("checkmate nomate".equals(command) || "checkmate timeout".equals(command) || "checkmate".equals(command) || "checkmate notimplemented".equals(command))) {
+							// 標準出力（GUI側）へのコマンドリストに追加
+							// ・スレッドの排他制御
+							synchronized (systemOutputThread) {
 								// 標準出力（GUI側）へのコマンドリストに追加
 								systemOutputThread.getCommandList().add("info string pvMate : " + command);
-
-								// checkmateの指し手をセット
-								pvMateEngine.setCheckmateMoves(command.substring("checkmate ".length()));
-
-								// 詰探索エンジンの読み筋（評価値を含む）を作成して出力する
-								// （例）「info score mate 5 pv R*6a 5a6a 2a4a 6a6b 8b7a」
-								// systemOutputThread.getCommandList().add(pvMateEngine.createPv());
-
-								// ----- 通常の探索エンジンに「mateinfo」コマンドを送信
-								// （例）「mateinfo position sfen ln1g1g1n1/2s1k4/p1ppp3p/5ppR1/P8/2P1LKP2/3PPP2P/5+rS2/L5sNL b BGSN2Pbg2p 1 checkmate 5f5c+ 5b5c N*6e 5c4b S*4c 4b5a G*4b 4a4b 4c4b+ 5a4b 2d2b+ S*3b G*5c 4b4a B*5b 6a5b 5c5b 4a5b 2b3b L*4b S*5c 5b6a G*6b」
-								String mateinfo = "mateinfo " + pvMateEngine.getLatestGoMatePositionSfen() + " " + command;
-
-								// スレッドの排他制御
-								synchronized (currentEngine.getOutputThread()) {
-									currentEngine.getOutputThread().getCommandList().add(mateinfo);
-								}
-								// -----
 							}
+
+							// checkmateの指し手をセット
+							pvMateEngine.setCheckmateMoves(command.substring("checkmate ".length()));
+
+							// ----- 通常の探索エンジンに「mateinfo」コマンドを送信
+							// （例）「mateinfo position sfen ln1g1g1n1/2s1k4/p1ppp3p/5ppR1/P8/2P1LKP2/3PPP2P/5+rS2/L5sNL b BGSN2Pbg2p 1 checkmate 5f5c+ 5b5c N*6e 5c4b S*4c 4b5a G*4b 4a4b 4c4b+ 5a4b 2d2b+ S*3b G*5c 4b4a B*5b 6a5b 5c5b 4a5b 2b3b L*4b S*5c 5b6a G*6b」
+							String mateinfo = "mateinfo " + pvMateEngine.getLatestGoMatePositionSfen() + " " + command;
+
+							// スレッドの排他制御
+							synchronized (currentEngine.getOutputThread()) {
+								currentEngine.getOutputThread().getCommandList().add(mateinfo);
+							}
+
+							// 読み筋局面用の詰探索のカウンター
+							g_cnt_pvMate_success++;
+
+							// -----
 						}
 					}
 				}
 			}
 		}
-
 	}
 
 }
