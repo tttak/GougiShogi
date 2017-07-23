@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -62,6 +63,8 @@ public class UsiLogic6 extends UsiLogicCommon {
 		// 詰探索済みの読み筋局面（sfen）セット
 		// ・要素の例「sfen lnsgkgsnl/1r5b1/pppppp1pp/6p2/9/7P1/PPPPPPP1P/1B5R1/LNSGKGSNL b - 3」
 		Set<String> searchedPvSfenSet = new HashSet<String>();
+		// mateinfoコマンドリスト
+		List<MateInfoBean> mateInfoList = new ArrayList<MateInfoBean>();
 
 		while (true) {
 			// 保留中の標準入力（GUI側）からのコマンドリスト
@@ -162,6 +165,9 @@ public class UsiLogic6 extends UsiLogicCommon {
 				g_cnt_pvMate_success = 0;
 				g_cnt_pvMate_last_displayed = 0;
 
+				// mateinfoコマンドリストのクリア
+				mateInfoList = new ArrayList<MateInfoBean>();
+
 				logger.info("「usinewgame」の場合 END");
 			}
 
@@ -171,6 +177,8 @@ public class UsiLogic6 extends UsiLogicCommon {
 				StateInfo.getInstance().setDuringGame(false);
 				// 全エンジンの読み筋リストをクリア
 				ShogiUtils.clearPvList(usiEngineList);
+				// mateinfoコマンドリストのクリア
+				mateInfoList = new ArrayList<MateInfoBean>();
 				logger.info("「gameover」の場合 END");
 			}
 
@@ -199,7 +207,9 @@ public class UsiLogic6 extends UsiLogicCommon {
 				// 読み筋局面用の詰探索処理（詰探索エンジンへ）
 				pvMateToMateEngine(currentEngine, pvMateEngineList, sfenYaneuraOu, searchedPvPosSet, searchedPvSfenSet);
 				// 読み筋局面用の詰探索処理（詰探索エンジンより）
-				pvMateFromMateEngine(currentEngine, pvMateEngineList, systemOutputThread);
+				pvMateFromMateEngine(currentEngine, pvMateEngineList, systemOutputThread, mateInfoList);
+				// 現在のエンジンへmateinfoコマンドを送信
+				sendMateInfoToCurrentEngine(currentEngine, mateInfoList);
 			}
 			// }
 
@@ -536,7 +546,7 @@ public class UsiLogic6 extends UsiLogicCommon {
 
 					// ----- [O][X]の出力
 					// ・通常の探索エンジンの方を後にする
-					// （例）「info string [X] [詰み無し]　[NanohaTsumeUSI]」
+					// （例）「info string [X] [詰み無し] [NanohaTsumeUSI]」
 					systemOutputThread.getCommandList().add("info string [X] " + mateEngine.getMateDisp());
 					// （例）「info string [O] bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
 					systemOutputThread.getCommandList().add("info string [O] " + currentEngine.getBestmoveScoreDisp(true, true));
@@ -565,7 +575,7 @@ public class UsiLogic6 extends UsiLogicCommon {
 					// （例）「info string [X] bestmove 7g7f ponder 3c3d [７六(77) ３四(33)] [評価値 123 （前回100 差分23）] [Gikou 20160606]」
 					systemOutputThread.getCommandList().add("info string [" + hantei + "] " + currentEngine.getBestmoveScoreDisp(true, true));
 
-					// （例）「info string [O] [5手詰め]　[６一飛打 ６一(51) ４一(21) ６二(61) ７一(82)]　[NanohaTsumeUSI]」
+					// （例）「info string [O] [5手詰め] [６一飛打 ６一(51) ４一(21) ６二(61) ７一(82)] [NanohaTsumeUSI]」
 					systemOutputThread.getCommandList().add("info string [O] " + mateEngine.getMateDisp());
 					// -----
 
@@ -584,10 +594,11 @@ public class UsiLogic6 extends UsiLogicCommon {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「usi」の場合）2
-	 * 
-	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List) */
+	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List)
+	 */
 	@Override
 	protected void enginesToSysoutAtUsi2(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
 		// 独自オプションを追加
@@ -597,6 +608,10 @@ public class UsiLogic6 extends UsiLogicCommon {
 			systemOutputThread.getCommandList().add("option name G_MateTimeout type spin default 10000 min 1 max 1000000");
 			// 読み筋局面用の詰探索エンジンのタイムアウト（ミリ秒）
 			systemOutputThread.getCommandList().add("option name G_PvMateTimeout type spin default 5000 min 1 max 1000000");
+			// mateinfoコマンドの送信回数
+			systemOutputThread.getCommandList().add("option name G_MateInfoCount type spin default 10 min 1 max 1000");
+			// mateinfoコマンドの送信間隔（ミリ秒）
+			systemOutputThread.getCommandList().add("option name G_MateInfoInterval type spin default 1000 min 1 max 100000");
 		}
 	}
 
@@ -714,8 +729,9 @@ public class UsiLogic6 extends UsiLogicCommon {
 	 * @param currentEngine
 	 * @param pvMateEngineList
 	 * @param systemOutputThread
+	 * @param mateInfoList
 	 */
-	private void pvMateFromMateEngine(UsiEngine currentEngine, List<MateEngine> pvMateEngineList, OutputStreamThread systemOutputThread) {
+	private void pvMateFromMateEngine(UsiEngine currentEngine, List<MateEngine> pvMateEngineList, OutputStreamThread systemOutputThread, List<MateInfoBean> mateInfoList) {
 		for (MateEngine pvMateEngine : pvMateEngineList) {
 			InputStreamThread processInputThread = pvMateEngine.getInputThread();
 			List<String> processInputCommandList = null;
@@ -750,14 +766,12 @@ public class UsiLogic6 extends UsiLogicCommon {
 							// checkmateの指し手をセット
 							pvMateEngine.setCheckmateMoves(command.substring("checkmate ".length()));
 
-							// ----- 通常の探索エンジンに「mateinfo」コマンドを送信
+							// 「mateinfo」コマンドを作成
 							// （例）「mateinfo position sfen ln1g1g1n1/2s1k4/p1ppp3p/5ppR1/P8/2P1LKP2/3PPP2P/5+rS2/L5sNL b BGSN2Pbg2p 1 checkmate 5f5c+ 5b5c N*6e 5c4b S*4c 4b5a G*4b 4a4b 4c4b+ 5a4b 2d2b+ S*3b G*5c 4b4a B*5b 6a5b 5c5b 4a5b 2b3b L*4b S*5c 5b6a G*6b」
 							String mateinfo = "mateinfo " + pvMateEngine.getLatestGoMatePositionSfen() + " " + command;
 
-							// スレッドの排他制御
-							synchronized (currentEngine.getOutputThread()) {
-								currentEngine.getOutputThread().getCommandList().add(mateinfo);
-							}
+							// MateInfoBeanを生成し、mateinfoコマンドリストへ追加
+							mateInfoList.add(new MateInfoBean(mateinfo));
 
 							// 読み筋局面用の詰探索のカウンター
 							g_cnt_pvMate_success++;
@@ -768,6 +782,51 @@ public class UsiLogic6 extends UsiLogicCommon {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 現在のエンジンへmateinfoコマンドを送信
+	 * @param currentEngine
+	 * @param mateInfoList
+	 */
+	private void sendMateInfoToCurrentEngine(UsiEngine currentEngine, List<MateInfoBean> mateInfoList) {
+
+		// ----- mateinfoコマンドを送信
+
+		// mateinfoコマンドリストをループ
+		for (MateInfoBean mateInfoBean : mateInfoList) {
+			// 前回のmateinfoコマンド送信から一定時間以上経過した場合
+			if (System.currentTimeMillis() > mateInfoBean.getPrevTime() + StateInfo.getInstance().getMateInfoInterval()) {
+				logger.info((mateInfoBean.getCount() + 1) + "回目のmateinfoコマンド送信：" + mateInfoBean.getCommand());
+
+				// mateinfoコマンドを送信
+				// スレッドの排他制御
+				synchronized (currentEngine.getOutputThread()) {
+					currentEngine.getOutputThread().getCommandList().add(mateInfoBean.getCommand());
+				}
+
+				// 送信回数と前回送信時刻を更新
+				mateInfoBean.setCount(mateInfoBean.getCount() + 1);
+				mateInfoBean.setPrevTime(System.currentTimeMillis());
+			}
+		}
+
+		// ----- 設定された送信回数まで送信し終えたMateInfoBeanを削除
+
+		// mateInfoListの要素をループ中で削除するのでIteratorを使う
+		Iterator<MateInfoBean> it = mateInfoList.iterator();
+
+		// mateinfoコマンドリストをループ
+		while (it.hasNext()) {
+			MateInfoBean mateInfoBean = it.next();
+
+			if (mateInfoBean.getCount() >= StateInfo.getInstance().getMateInfoCount()) {
+				logger.info("設定された送信回数まで送信し終えたMateInfoBeanを削除：" + mateInfoBean.getCount() + "回、" + mateInfoBean.getCommand());
+
+				it.remove();
+			}
+		}
+
 	}
 
 }

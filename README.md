@@ -97,6 +97,7 @@
 読み筋の局面で詰みが見つかった場合、通常の探索エンジンへmateinfoコマンド（当プログラム用の独自の拡張コマンド）で通知します。  
   - 読み筋の局面の詰探索に使用する詰探索エンジンの個数を「SimpleGougiShogi.config」で指定してください。  
   - 将棋所等のエンジン設定画面で、詰探索エンジンのタイムアウト（ミリ秒）を「G_MateTimeout」（現局面用）および「G_PvMateTimeout」（読み筋の局面用）で指定してください。  
+  - 将棋所等のエンジン設定画面で、mateinfoコマンドの送信回数および送信間隔（ミリ秒）を「G_MateInfoCount」（デフォルト値：10）および「G_MateInfoInterval」（デフォルト値：1000）で指定してください。デフォルトではmateinfoコマンドを1秒ごとに10回送信します。  
   - 「SimpleGougiShogi.jar」や「SimpleGougiShogi.config」と同じフォルダに「YaneuraOu_sfen変換用.exe」を配置しておいてください。  
   - 通常の探索エンジン側がmateinfoコマンド（当プログラム用の独自の拡張コマンド）に対応している必要があります。  
     技巧とやねうら王のmateinfoコマンドのサンプルプログラム（mateinfoコマンドを受信すると置換表にmateの評価値を登録する）  

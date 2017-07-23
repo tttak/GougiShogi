@@ -198,7 +198,7 @@ public abstract class UsiLogicCommon {
 		if ("G_MateTimeout".equals(option)) {
 			// （例）「setoption name G_MateTimeout value 30000」→「30000」
 			int mateTimeout = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 10000);
-			logger.info("mateTimeout=" + mateTimeout);
+			logger.info("G_MateTimeout=" + mateTimeout);
 			StateInfo.getInstance().setMateTimeout(mateTimeout);
 			return null;
 		}
@@ -207,8 +207,26 @@ public abstract class UsiLogicCommon {
 		if ("G_PvMateTimeout".equals(option)) {
 			// （例）「setoption name G_PvMateTimeout value 30000」→「30000」
 			int pvMateTimeout = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 5000);
-			logger.info("PvMateTimeout=" + pvMateTimeout);
+			logger.info("G_PvMateTimeout=" + pvMateTimeout);
 			StateInfo.getInstance().setPvMateTimeout(pvMateTimeout);
+			return null;
+		}
+
+		// 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索） 」対応
+		if ("G_MateInfoCount".equals(option)) {
+			// （例）「setoption name G_MateInfoCount value 10」→「10」
+			int mateInfoCount = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 10);
+			logger.info("G_MateInfoCount=" + mateInfoCount);
+			StateInfo.getInstance().setMateInfoCount(mateInfoCount);
+			return null;
+		}
+
+		// 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索） 」対応
+		if ("G_MateInfoInterval".equals(option)) {
+			// （例）「setoption name G_MateInfoInterval value 1000」→「1000」
+			int mateInfoInterval = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 1000);
+			logger.info("G_MateInfoInterval=" + mateInfoInterval);
+			StateInfo.getInstance().setMateInfoInterval(mateInfoInterval);
 			return null;
 		}
 

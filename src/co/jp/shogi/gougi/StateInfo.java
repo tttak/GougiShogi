@@ -53,6 +53,10 @@ public class StateInfo {
 	// ----- 合議タイプ「詰探索エンジンとの合議（読み筋の局面も詰探索）」の場合に使用
 	/** 読み筋局面用の詰探索エンジンのタイムアウト（ミリ秒） */
 	private int pvMateTimeout = 5000;
+	/** mateinfoコマンドの送信回数 */
+	private int mateInfoCount = 10;
+	/** mateinfoコマンドの送信間隔（ミリ秒） */
+	private int mateInfoInterval = 1000;
 
 	// ---------- Singleton化 START ----------
 
@@ -93,9 +97,9 @@ public class StateInfo {
 	/**
 	 * 自分が先手か否かを返す
 	 * ・直近の「position」コマンドのmovesの後の指し手の数で判定する
-	 * （例）「position startpos」　→　先手
-	 * （例）「position startpos moves 7g7f」　→　後手
-	 * （例）「position startpos moves 7g7f 3c3d」　→　先手
+	 * （例）「position startpos」 → 先手
+	 * （例）「position startpos moves 7g7f」 → 後手
+	 * （例）「position startpos moves 7g7f 3c3d」 → 先手
 	 * 
 	 * @return
 	 */
@@ -351,6 +355,22 @@ public class StateInfo {
 
 	public void setPvMateTimeout(int pvMateTimeout) {
 		this.pvMateTimeout = pvMateTimeout;
+	}
+
+	public int getMateInfoCount() {
+		return mateInfoCount;
+	}
+
+	public void setMateInfoCount(int mateInfoCount) {
+		this.mateInfoCount = mateInfoCount;
+	}
+
+	public int getMateInfoInterval() {
+		return mateInfoInterval;
+	}
+
+	public void setMateInfoInterval(int mateInfoInterval) {
+		this.mateInfoInterval = mateInfoInterval;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------
