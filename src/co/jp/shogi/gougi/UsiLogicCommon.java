@@ -154,6 +154,16 @@ public abstract class UsiLogicCommon {
 				setEnginePonderOnOff(engine, command);
 			}
 
+			// 詰探索エンジンの場合、「USI_Hash」を最大256MBに制限しておく
+			if (engine instanceof MateEngine && "USI_Hash".equals(option)) {
+				// （例）「setoption name USI_Hash value 1024」→「1024」
+				int usi_hash = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 0);
+				logger.info("usi_hash=" + usi_hash);
+				if (usi_hash > 256) {
+					return "setoption name USI_Hash value 256";
+				}
+			}
+
 			// commandをそのまま返す
 			return command;
 		}
