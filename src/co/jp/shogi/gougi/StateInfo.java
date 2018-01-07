@@ -42,6 +42,12 @@ public class StateInfo {
 	/** 対局者を交代する手数 */
 	private int changePlayerPlys = 1;
 
+	// ----- 合議タイプ「序盤・中盤・終盤で対局者交代」の場合に使用
+	/** 中盤の対局者に交代する手数 */
+	private int chuubanStartPlys = 51;
+	/** 終盤の対局者に交代する手数 */
+	private int shuubanStartPlys = 101;
+
 	// ----- 合議タイプ「2手前の評価値から一定値以上下降したら対局者交代」「2手前の評価値から一定値以上上昇したら対局者交代」の場合に使用
 	/** 対局者を交代する評価値の差分 */
 	private int changePlayerScoreDiff = 100;
@@ -124,12 +130,51 @@ public class StateInfo {
 			return true;
 		}
 
-		// latestPosition全体のスペースで区切った件数で判定する
+		// latestPosition全体をスペースで区切った件数で判定する
 		String[] sa = latestPosition.split(" ", -1);
 		if (sa.length % 2 == 0) {
 			return false;
 		} else {
 			return true;
+		}
+	}
+
+	/**
+	 * 直近の「position」コマンドの局面（「go（ponderではない）」か「go ponder」かは問わない）を元に算出した手数を返す
+	 * （例）「position startpos」 → 1
+	 * （例）「position startpos moves 7g7f」 → 2
+	 * （例）「position startpos moves 7g7f 3c3d」 → 3
+	 * 
+	 * @return
+	 */
+	public int getPlysFromLatestPosition() {
+		// 直近の「position」コマンドが存在しない場合、1を返しておく
+		if (Utils.isEmpty(latestPosition)) {
+			return 1;
+		}
+
+		// 直近の「position」コマンドが「position startpos」で始まらない場合、1を返しておく
+		if (!latestPosition.startsWith("position startpos")) {
+			return 1;
+		}
+
+		// 1手目
+		if (latestPosition.equals("position startpos")) {
+			return 1;
+		}
+
+		// 判定不能だが1を返しておく
+		if (!latestPosition.startsWith("position startpos moves ")) {
+			return 1;
+		}
+
+		// latestPosition全体をスペースで区切った件数を元に算出する
+		String[] sa = latestPosition.split(" ", -1);
+		int plys = sa.length - 3;
+		if (plys >= 1) {
+			return plys;
+		} else {
+			return 1;
 		}
 	}
 
@@ -371,6 +416,22 @@ public class StateInfo {
 
 	public void setMateInfoInterval(int mateInfoInterval) {
 		this.mateInfoInterval = mateInfoInterval;
+	}
+
+	public int getChuubanStartPlys() {
+		return chuubanStartPlys;
+	}
+
+	public void setChuubanStartPlys(int chuubanStartPlys) {
+		this.chuubanStartPlys = chuubanStartPlys;
+	}
+
+	public int getShuubanStartPlys() {
+		return shuubanStartPlys;
+	}
+
+	public void setShuubanStartPlys(int shuubanStartPlys) {
+		this.shuubanStartPlys = shuubanStartPlys;
 	}
 
 	// ------------------------------ 単純なGetter&Setter END ------------------------------

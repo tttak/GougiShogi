@@ -6,6 +6,13 @@ import java.util.logging.Logger;
 
 /**
  * USIロジック1
+ * 合議タイプが以下のいずれかの場合に使う
+ * ・「多数決合議（3者）」
+ * ・「楽観合議」
+ * ・「悲観合議」
+ * ・「楽観合議と悲観合議を交互」
+ * ・「2手前の評価値からの上昇分の楽観合議」
+ * ・「2手前の評価値からの上昇分の悲観合議」
  */
 public class UsiLogic1 extends UsiLogicCommon {
 
@@ -511,10 +518,11 @@ public class UsiLogic1 extends UsiLogicCommon {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「usi」の場合）2
-	 * 
-	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List) */
+	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List)
+	 */
 	@Override
 	protected void enginesToSysoutAtUsi2(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
 		// 何もしない

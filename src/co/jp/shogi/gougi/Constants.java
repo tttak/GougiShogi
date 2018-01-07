@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20170527";
+	public static final String USI_ID_NAME = "SimpleGougiShogi_20180108";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 
@@ -22,6 +22,8 @@ public class Constants {
 	public static final int ENGINE_COUNT_TASUUKETSU_3 = 3;
 	/** 「各々の最善手を交換して評価値の合計で判定（2者）」の場合のUSIエンジンリストの件数 */
 	public static final int ENGINE_COUNT_BESTMOVE_EXCHANGE_2 = 2;
+	/** 「序盤・中盤・終盤で対局者交代」の場合のUSIエンジンリストの件数 */
+	public static final int ENGINE_COUNT_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN = 3;
 	/** 「詰探索エンジンとの合議」の場合のUSIエンジンリストの件数 */
 	public static final int ENGINE_COUNT_MATE = 1;
 
@@ -41,6 +43,8 @@ public class Constants {
 	public static final String GOUGI_TYPE_BESTMOVE_EXCHANGE_2 = "各々の最善手を交換して評価値の合計で判定（2者）";
 	/** 【合議タイプ】数手ごとに対局者交代 */
 	public static final String GOUGI_TYPE_CHANGE_PLAYER_PLYS = "数手ごとに対局者交代";
+	/** 【合議タイプ】序盤・中盤・終盤で対局者交代 */
+	public static final String GOUGI_TYPE_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN = "序盤・中盤・終盤で対局者交代";
 	/** 【合議タイプ】2手前の評価値から一定値以上下降したら対局者交代 */
 	public static final String GOUGI_TYPE_CHANGE_PLAYER_SCORE_DOWN = "2手前の評価値から一定値以上下降したら対局者交代";
 	/** 【合議タイプ】2手前の評価値から一定値以上上昇したら対局者交代 */
@@ -64,6 +68,7 @@ public class Constants {
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_2TEMAE_JOUSHOU_HIKAN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_BESTMOVE_EXCHANGE_2);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER_PLYS);
+		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER_SCORE_DOWN);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_CHANGE_PLAYER_SCORE_UP);
 		GOUGI_TYPE_LIST.add(GOUGI_TYPE_MATE);

@@ -159,6 +159,15 @@ public class GougiConfig {
 			}
 		}
 
+		// 合議タイプが「序盤・中盤・終盤で対局者交代」の場合
+		if (Constants.GOUGI_TYPE_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN.equals(gougiType)) {
+			// エンジンが3個ではない場合
+			if (usiEngineList.size() != Constants.ENGINE_COUNT_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN) {
+				// チェックNG
+				return "合議タイプが「序盤・中盤・終盤で対局者交代」の場合、エンジンは3種類設定してください。";
+			}
+		}
+
 		// 合議タイプが「詰探索エンジンとの合議」の場合
 		if (Constants.GOUGI_TYPE_MATE.equals(gougiType)) {
 			// エンジンが1個ではない場合

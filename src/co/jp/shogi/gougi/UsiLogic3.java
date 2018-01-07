@@ -6,6 +6,11 @@ import java.util.logging.Logger;
 
 /**
  * USIロジック3
+ * 合議タイプが以下のいずれかの場合に使う
+ * ・「数手ごとに対局者交代」
+ * ・「序盤・中盤・終盤で対局者交代」
+ * ・「2手前の評価値から一定値以上下降したら対局者交代」
+ * ・「2手前の評価値から一定値以上上昇したら対局者交代」
  */
 public class UsiLogic3 extends UsiLogicCommon {
 
@@ -152,10 +157,11 @@ public class UsiLogic3 extends UsiLogicCommon {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「usi」の場合）2
-	 * 
-	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List) */
+	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List)
+	 */
 	@Override
 	protected void enginesToSysoutAtUsi2(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
 		// 独自オプションを追加
@@ -168,6 +174,14 @@ public class UsiLogic3 extends UsiLogicCommon {
 			if (Constants.GOUGI_TYPE_CHANGE_PLAYER_PLYS.equals(gougiType)) {
 				// 対局者を交代する手数
 				systemOutputThread.getCommandList().add("option name G_ChangePlayerPlys type spin default 1 min 1 max 1000");
+			}
+
+			// 合議タイプが「序盤・中盤・終盤で対局者交代」の場合
+			else if (Constants.GOUGI_TYPE_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN.equals(gougiType)) {
+				// 中盤の対局者に交代する手数
+				systemOutputThread.getCommandList().add("option name G_ChuubanStartPlys type spin default 51 min 1 max 1000");
+				// 終盤の対局者に交代する手数
+				systemOutputThread.getCommandList().add("option name G_ShuubanStartPlys type spin default 101 min 1 max 1000");
 			}
 
 			// 合議タイプが以下のいずれかの場合
@@ -241,6 +255,36 @@ public class UsiLogic3 extends UsiLogicCommon {
 				// 対局者交代
 				int currentIndex = ShogiUtils.getEngineListIndex(usiEngineList, currentEngine);
 				return selectNextIndexEngine(usiEngineList, currentIndex);
+			}
+		}
+
+		// 合議タイプ「序盤・中盤・終盤で対局者交代」の場合
+		else if (Constants.GOUGI_TYPE_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN.equals(gougiType)) {
+			// 直近の「position」コマンドの局面（「go（ponderではない）」か「go ponder」かは問わない）を元に算出した手数
+			int plysFromLatestPosition = StateInfo.getInstance().getPlysFromLatestPosition();
+			logger.info("plysFromLatestPosition=" + plysFromLatestPosition);
+
+			// 次の手数
+			int nextPlys = plysFromLatestPosition + 3;
+			logger.info("nextPlys=" + nextPlys);
+
+			// 次の手数が「終盤の対局者に交代する手数」以上の場合
+			if (nextPlys >= StateInfo.getInstance().getShuubanStartPlys()) {
+				// 終盤の対局者
+				logger.info("次のエンジン：終盤の対局者");
+				return usiEngineList.get(2);
+			}
+			// 次の手数が「中盤の対局者に交代する手数」以上の場合
+			else if (nextPlys >= StateInfo.getInstance().getChuubanStartPlys()) {
+				// 中盤の対局者
+				logger.info("次のエンジン：中盤の対局者");
+				return usiEngineList.get(1);
+			}
+			// その他の場合
+			else {
+				// 序盤の対局者
+				logger.info("次のエンジン：序盤の対局者");
+				return usiEngineList.get(0);
 			}
 		}
 

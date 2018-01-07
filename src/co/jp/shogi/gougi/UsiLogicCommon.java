@@ -195,6 +195,24 @@ public abstract class UsiLogicCommon {
 			return null;
 		}
 
+		// 合議タイプ「序盤・中盤・終盤で対局者交代」対応
+		// ・中盤の対局者に交代する手数
+		if ("G_ChuubanStartPlys".equals(option)) {
+			// （例）「setoption name G_ChuubanStartPlys value 51」→「51」
+			int chuubanStartPlys = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 51);
+			logger.info("chuubanStartPlys=" + chuubanStartPlys);
+			StateInfo.getInstance().setChuubanStartPlys(chuubanStartPlys);
+			return null;
+		}
+		// ・終盤の対局者に交代する手数
+		if ("G_ShuubanStartPlys".equals(option)) {
+			// （例）「setoption name G_ShuubanStartPlys value 101」→「101」
+			int shuubanStartPlys = Utils.getIntValue(Utils.getSplitResult(command, " ", 4), 101);
+			logger.info("shuubanStartPlys=" + shuubanStartPlys);
+			StateInfo.getInstance().setShuubanStartPlys(shuubanStartPlys);
+			return null;
+		}
+
 		// 合議タイプ「2手前の評価値から一定値以上下降したら対局者交代」「2手前の評価値から一定値以上上昇したら対局者交代」対応
 		if ("G_ChangePlayerScoreDiff".equals(option)) {
 			// （例）「setoption name G_ChangePlayerScoreDiff value 200」→「200」

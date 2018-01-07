@@ -82,9 +82,10 @@ public class SimpleGougiShogiMain {
 			}
 			// 合議タイプが以下のいずれかの場合
 			// ・「数手ごとに対局者交代」
+			// ・「序盤・中盤・終盤で対局者交代」
 			// ・「2手前の評価値から一定値以上下降したら対局者交代」
 			// ・「2手前の評価値から一定値以上上昇したら対局者交代」
-			else if (Constants.GOUGI_TYPE_CHANGE_PLAYER_PLYS.equals(gougiConfig.getGougiType()) || Constants.GOUGI_TYPE_CHANGE_PLAYER_SCORE_DOWN.equals(gougiConfig.getGougiType()) || Constants.GOUGI_TYPE_CHANGE_PLAYER_SCORE_UP.equals(gougiConfig.getGougiType())) {
+			else if (Constants.GOUGI_TYPE_CHANGE_PLAYER_PLYS.equals(gougiConfig.getGougiType()) || Constants.GOUGI_TYPE_CHANGE_PLAYER_JOBAN_CHUUBAN_SHUUBAN.equals(gougiConfig.getGougiType()) || Constants.GOUGI_TYPE_CHANGE_PLAYER_SCORE_DOWN.equals(gougiConfig.getGougiType()) || Constants.GOUGI_TYPE_CHANGE_PLAYER_SCORE_UP.equals(gougiConfig.getGougiType())) {
 				// USIロジック3を実行
 				UsiLogic3 usiLogic3 = new UsiLogic3();
 				usiLogic3.execute(usiEngineList, systemInputThread, systemOutputThread);
@@ -108,6 +109,13 @@ public class SimpleGougiShogiMain {
 				usiLogic6.execute(usiEngineList, systemInputThread, systemOutputThread);
 			}
 			// その他の場合
+			// すなわち、合議タイプが以下のいずれかの場合
+			// ・「多数決合議（3者）」
+			// ・「楽観合議」
+			// ・「悲観合議」
+			// ・「楽観合議と悲観合議を交互」
+			// ・「2手前の評価値からの上昇分の楽観合議」
+			// ・「2手前の評価値からの上昇分の悲観合議」
 			else {
 				// USIロジック1を実行
 				UsiLogic1 usiLogic1 = new UsiLogic1();

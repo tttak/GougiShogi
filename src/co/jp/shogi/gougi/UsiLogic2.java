@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 /**
  * USIロジック2
+ * 合議タイプが「各々の最善手を交換して評価値の合計で判定（2者）」の場合に使う
  */
 public class UsiLogic2 extends UsiLogicCommon {
 
@@ -151,10 +152,11 @@ public class UsiLogic2 extends UsiLogicCommon {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * 標準入力（GUI側）からのコマンドを各エンジンへのコマンドリストに追加する（「go」の場合）
-	 * 
-	 * @see co.jp.shogi.gougi.UsiLogicCommon#sysinToEnginesAtGo(java.lang.String, java.util.List) */
+	 * @see co.jp.shogi.gougi.UsiLogicCommon#sysinToEnginesAtGo(java.lang.String, java.util.List)
+	 */
 	protected void sysinToEnginesAtGo(String goCommand, List<UsiEngine> usiEngineList) {
 		// 直近の「position」コマンドの局面を取得
 		String position = StateInfo.getInstance().getLatestPosition();
@@ -544,10 +546,11 @@ public class UsiLogic2 extends UsiLogicCommon {
 		return sb.toString();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * 各エンジンからのコマンドを標準出力（GUI側）へのコマンドリストに追加する（「usi」の場合）2
-	 * 
-	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List) */
+	 * @see co.jp.shogi.gougi.UsiLogicCommon#enginesToSysoutAtUsi2(co.jp.shogi.gougi.OutputStreamThread, java.util.List)
+	 */
 	@Override
 	protected void enginesToSysoutAtUsi2(OutputStreamThread systemOutputThread, List<UsiEngine> usiEngineList) {
 		// 何もしない
