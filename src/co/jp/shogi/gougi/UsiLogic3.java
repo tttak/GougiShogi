@@ -115,6 +115,15 @@ public class UsiLogic3 extends UsiLogicCommon {
 			if (Utils.containsStartsWith(systemInputCommandList, "gameover")) {
 				logger.info("「gameover」の場合 START");
 				StateInfo.getInstance().setDuringGame(false);
+
+				// 現在のエンジンを戻しておく
+				currentEngine = usiEngineList.get(0);
+				// 現在のエンジンの指し手数
+				currentEnginePlys = 0;
+				// bestmove、直近の読み筋などをクリア
+				// ・特に【前回の値】bestmove、直近の読み筋がクリアされる
+				currentEngine.clear();
+
 				logger.info("「gameover」の場合 END");
 			}
 
