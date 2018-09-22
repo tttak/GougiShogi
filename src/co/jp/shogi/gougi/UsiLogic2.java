@@ -360,9 +360,8 @@ public class UsiLogic2 extends UsiLogicCommon {
 				engine.clearBestmoveLatestPv();
 			}
 
-			// 直近の「go（ponderではない）」コマンドの局面
-			// （例）「position startpos moves 1g1f 4a3b 6i7h」
-			String pos = StateInfo.getInstance().getLatestGoNotPonderPosition();
+			// 直近の「position」コマンドの局面を取得
+			String pos = StateInfo.getInstance().getLatestPosition();
 
 			// 最善手の交換（お互いの最善手を付加）
 			String pos1 = ShogiUtils.appendMove(pos, bestmove2);
