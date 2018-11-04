@@ -609,9 +609,9 @@ public class UsiLogic6 extends UsiLogicCommon {
 			// 読み筋局面用の詰探索エンジンのタイムアウト（ミリ秒）
 			systemOutputThread.getCommandList().add("option name G_PvMateTimeout type spin default 5000 min 1 max 1000000");
 			// mateinfoコマンドの送信回数
-			systemOutputThread.getCommandList().add("option name G_MateInfoCount type spin default 10 min 1 max 1000");
+			systemOutputThread.getCommandList().add("option name G_MateInfoCount type spin default 100 min 1 max 1000");
 			// mateinfoコマンドの送信間隔（ミリ秒）
-			systemOutputThread.getCommandList().add("option name G_MateInfoInterval type spin default 1000 min 1 max 100000");
+			systemOutputThread.getCommandList().add("option name G_MateInfoInterval type spin default 100 min 1 max 100000");
 		}
 	}
 

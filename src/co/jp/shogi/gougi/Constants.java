@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20180108";
+	public static final String USI_ID_NAME = "SimpleGougiShogi_20181104";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 

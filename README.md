@@ -101,14 +101,14 @@
 読み筋の局面で詰みが見つかった場合、通常の探索エンジンへmateinfoコマンド（当プログラム用の独自の拡張コマンド）で通知します。  
   - 読み筋の局面の詰探索に使用する詰探索エンジンの個数を「SimpleGougiShogi.config」で指定してください。  
   - 将棋所等のエンジン設定画面で、詰探索エンジンのタイムアウト（ミリ秒）を「G_MateTimeout」（現局面用）および「G_PvMateTimeout」（読み筋の局面用）で指定してください。  
-  - 将棋所等のエンジン設定画面で、mateinfoコマンドの送信回数および送信間隔（ミリ秒）を「G_MateInfoCount」（デフォルト値：10）および「G_MateInfoInterval」（デフォルト値：1000）で指定してください。デフォルトではmateinfoコマンドを1秒ごとに10回送信します。  
+  - 将棋所等のエンジン設定画面で、mateinfoコマンドの送信回数および送信間隔（ミリ秒）を「G_MateInfoCount」（デフォルト値：100）および「G_MateInfoInterval」（デフォルト値：100）で指定してください。デフォルトではmateinfoコマンドを0.1秒ごとに100回送信します。  
   - 「SimpleGougiShogi.jar」や「SimpleGougiShogi.config」と同じフォルダに「YaneuraOu_sfen変換用.exe」を配置しておいてください。  
   - 通常の探索エンジン側がmateinfoコマンド（当プログラム用の独自の拡張コマンド）に対応している必要があります。  
     技巧とやねうら王のmateinfoコマンドのサンプルプログラム（mateinfoコマンドを受信すると置換表にmateの評価値を登録する）  
     - https://github.com/tttak/Gikou/commit/c3c93483c56148363e7defbfff6d48ba86906583
     - https://github.com/tttak/Gikou/releases
-    - https://github.com/tttak/YaneuraOu/commit/bac386907212f8a5a300da495c1fa5f8d5a482fb
-    - https://github.com/tttak/YaneuraOu/tree/MateInfo/exe/2017Early
+    - https://github.com/tttak/YaneuraOu/commit/660b43fca1309a4c0f1c7ba099ac6ab4590b445c
+    - https://github.com/tttak/YaneuraOu/releases
 
 ## 留意事項
 - 短い時間の対局では切れ負けすることがありますのでご留意頂ければと思います。  
