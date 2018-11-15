@@ -9,12 +9,12 @@ import java.util.List;
 public class Constants {
 
 	/** usiコマンドに返す「id name」 */
-	public static final String USI_ID_NAME = "SimpleGougiShogi_20181104";
+	public static final String USI_ID_NAME = "GougiShogi_20181115";
 	/** usiコマンドに返す「id author」 */
 	public static final String USI_ID_AUTHOR = "t";
 
 	/** 設定ファイルのファイル名 */
-	public static final String CONFIG_FILENAME = "SimpleGougiShogi.config";
+	public static final String CONFIG_FILENAME = "GougiShogi.config";
 
 	/** USIエンジンリストの最大件数 */
 	public static final int ENGINE_COUNT_MAX = 10;

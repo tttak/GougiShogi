@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * シンプル合議将棋のメインクラス
+ * 合議将棋のメインクラス
  */
-public class SimpleGougiShogiMain {
+public class GougiShogiMain {
 
 	/** Logger */
-	protected static Logger logger = Logger.getLogger(SimpleGougiShogiMain.class.getName());
+	protected static Logger logger = Logger.getLogger(GougiShogiMain.class.getName());
 
 	/**
 	 * mainメソッド
@@ -25,7 +25,7 @@ public class SimpleGougiShogiMain {
 			logger.info("main() START!!");
 
 			// executeメソッド実行
-			SimpleGougiShogiMain obj = new SimpleGougiShogiMain();
+			GougiShogiMain obj = new GougiShogiMain();
 			obj.execute();
 
 			logger.info("main() END!!");

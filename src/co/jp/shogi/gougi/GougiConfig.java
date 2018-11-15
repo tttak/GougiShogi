@@ -188,7 +188,7 @@ public class GougiConfig {
 
 	/**
 	 * 設定ファイルのパスを取得する
-	 * 自分（jarファイル）と同じフォルダ内にある「SimpleGougiShogi.config」の絶対パスを返す
+	 * 自分（jarファイル）と同じフォルダ内にある「GougiShogi.config」の絶対パスを返す
 	 * 
 	 * @return
 	 */

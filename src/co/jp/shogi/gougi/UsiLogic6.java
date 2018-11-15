@@ -237,7 +237,7 @@ public class UsiLogic6 extends UsiLogicCommon {
 
 		// 読み筋局面用の詰探索エンジンのプロセス終了
 		// ・既にquitコマンドが送信されているはずだが、念のため。
-		// ・読み筋局面用ではない方の詰探索エンジン（mateEngine）はSimpleGougiShogiMainでプロセス終了しているので、ここでは不要。（本来は統一した方がいいが．．．）
+		// ・読み筋局面用ではない方の詰探索エンジン（mateEngine）はGougiShogiMainでプロセス終了しているので、ここでは不要。（本来は統一した方がいいが．．．）
 		if (pvMateEngineList != null) {
 			for (UsiEngine engine : pvMateEngineList) {
 				engine.destroy();
