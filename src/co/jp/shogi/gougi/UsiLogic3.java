@@ -116,13 +116,16 @@ public class UsiLogic3 extends UsiLogicCommon {
 				logger.info("「gameover」の場合 START");
 				StateInfo.getInstance().setDuringGame(false);
 
+				// 連続対局の際に次の対局の初手でillegal moveになる場合があるので、一旦コメントアウトしておく
+				// ----- コメントアウト START
 				// 現在のエンジンを戻しておく
-				currentEngine = usiEngineList.get(0);
+				// currentEngine = usiEngineList.get(0);
 				// 現在のエンジンの指し手数
-				currentEnginePlys = 0;
+				// currentEnginePlys = 0;
 				// bestmove、直近の読み筋などをクリア
 				// ・特に【前回の値】bestmove、直近の読み筋がクリアされる
-				currentEngine.clear();
+				// currentEngine.clear();
+				// ----- コメントアウト END
 
 				logger.info("「gameover」の場合 END");
 			}
